@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { useAuthStore } from "@/stores/auth";
-import { apiClient } from "@/lib/api";
+import { apiClient, getAuthBaseUrl } from "@/lib/api";
 
 /**
  * Build a form-urlencoded body string from an object.
@@ -63,7 +63,7 @@ export default function LoginScreen() {
 
     try {
       // Step 1: Get CSRF token from NextAuth
-      const csrfRes = await apiClient.get("../../api/auth/csrf");
+      const csrfRes = await apiClient.get(`${getAuthBaseUrl()}/csrf`);
       const csrfToken = csrfRes.data?.csrfToken;
 
       if (!csrfToken) {
@@ -82,7 +82,7 @@ export default function LoginScreen() {
       });
 
       const signInRes = await apiClient.post(
-        "../../api/auth/callback/credentials",
+        `${getAuthBaseUrl()}/callback/credentials`,
         body,
         {
           headers: {
@@ -94,7 +94,7 @@ export default function LoginScreen() {
       // NextAuth returns a redirect on success
       if (signInRes.data?.url) {
         // Get session token from the session endpoint
-        const sessionRes = await apiClient.get("../../api/auth/session");
+        const sessionRes = await apiClient.get(`${getAuthBaseUrl()}/session`);
         if (sessionRes.data?.user?.id) {
           // Store a simple token derived from the user ID for Bearer auth
           // In production, the server should issue a dedicated JWT for mobile

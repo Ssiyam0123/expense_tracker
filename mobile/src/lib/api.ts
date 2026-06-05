@@ -16,6 +16,11 @@ export function getApiBaseUrl(): string {
   return API_URL;
 }
 
+export function getAuthBaseUrl(): string {
+  const base = API_URL.replace(/\/api\/v1\/?$/, "").replace(/\/v1\/?$/, "");
+  return `${base}/api/auth`;
+}
+
 export const apiClient = axios.create({
   baseURL: API_URL,
   headers: {

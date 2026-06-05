@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { useAuthStore } from "@/stores/auth";
-import { apiClient } from "@/lib/api";
+import { apiClient, getAuthBaseUrl } from "@/lib/api";
 
 function formUrlEncode(obj: Record<string, string>): string {
   return Object.entries(obj)
@@ -72,7 +72,7 @@ export default function SignupScreen() {
 
       // Signup succeeded, now log in automatically
       // First get CSRF token
-      const csrfRes = await apiClient.get("../../api/auth/csrf");
+      const csrfRes = await apiClient.get(`${getAuthBaseUrl()}/csrf`);
       const csrfToken = csrfRes.data?.csrfToken;
 
       if (!csrfToken) {
@@ -89,12 +89,12 @@ export default function SignupScreen() {
         json: "true",
       });
 
-      await apiClient.post("../../api/auth/callback/credentials", loginBody, {
+      await apiClient.post(`${getAuthBaseUrl()}/callback/credentials`, loginBody, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
 
       // Get session
-      const sessionRes = await apiClient.get("../../api/auth/session");
+      const sessionRes = await apiClient.get(`${getAuthBaseUrl()}/session`);
       if (sessionRes.data?.user?.id) {
         const mobileToken = toBase64(
           JSON.stringify({
