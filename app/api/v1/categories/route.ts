@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { getUserId } from "@/lib/get-user-id";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { logger } from "@/lib/logger";
-import { getCategories, createCategory } from "@/services/category";
+import { getCategories, createCategory, deleteCategory } from "@/services/category";
 import { createCategorySchema } from "@/schemas/category";
 
 export async function GET() {
@@ -40,5 +40,29 @@ export async function POST(req: NextRequest) {
       return apiError("CONFLICT", (err as Error).message, 409);
     }
     return apiError("INTERNAL", "Failed to create category", 500);
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const userId = await getUserId();
+    if (!userId) {
+      return apiError("UNAUTHORIZED", "Authentication required", 401);
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    if (!id) {
+      return apiError("VALIDATION", "Category ID is required", 400);
+    }
+
+    await deleteCategory(userId, id);
+    return apiSuccess({ deleted: true });
+  } catch (err) {
+    logger.error({ err }, "DELETE /api/v1/categories error");
+    if ((err as Error).message === "Category not found") {
+      return apiError("NOT_FOUND", "Category not found", 404);
+    }
+    return apiError("INTERNAL", "Failed to delete category", 500);
   }
 }

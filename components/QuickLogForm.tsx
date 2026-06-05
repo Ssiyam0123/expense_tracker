@@ -72,7 +72,40 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
     setCategoryId(""); // fallback to first item of new type
   };
 
-  const allCategories = [...categories, ...newLocalCategories];
+  const [deletedCategoryIds, setDeletedCategoryIds] = useState<string[]>([]);
+
+  const handleDeleteCategory = async (catId: string) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this category? Any transactions or budgets using it will be marked as 'Unknown'."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/v1/categories?id=${catId}`, {
+        method: "DELETE",
+      });
+
+      const body = await res.json();
+      if (res.ok && body.data) {
+        setDeletedCategoryIds((prev) => [...prev, catId]);
+        if (categoryId === catId) {
+          setCategoryId(""); // Reset active category if deleted
+        }
+        router.refresh();
+      } else {
+        setNewCatError(body.error?.message || "Failed to delete category");
+      }
+    } catch (err) {
+      setNewCatError("Failed to connect to the server");
+    }
+  };
+
+  const allCategories = [...categories, ...newLocalCategories].filter(
+    (cat) => !deletedCategoryIds.includes(cat._id)
+  );
   const uniqueCategories = allCategories.filter((cat, index, self) =>
     self.findIndex(c => c._id === cat._id) === index
   );
@@ -536,6 +569,45 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
                 </button>
               </div>
             </form>
+
+            {/* Existing Categories list */}
+            <div className="mt-6 border-t border-white/[0.08] pt-4">
+              <h4 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">
+                Existing {type === "expense" ? "Expense" : "Income"} Categories
+              </h4>
+              {filteredCategories.length === 0 ? (
+                <p className="text-xs text-slate-500 italic">No categories found</p>
+              ) : (
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
+                  {filteredCategories.map((cat) => (
+                    <div
+                      key={cat._id}
+                      className="flex items-center justify-between rounded-lg bg-slate-900/40 border border-white/[0.03] px-3 py-2 text-sm text-white transition-colors hover:border-white/[0.08]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{cat.icon}</span>
+                        <span className="font-medium text-xs">{cat.name}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCategory(cat._id)}
+                        className="text-slate-400 hover:text-danger rounded p-1 transition-colors hover:bg-danger/10"
+                        title="Delete category"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
