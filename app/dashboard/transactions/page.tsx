@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { listTransactions } from "@/services/transaction";
 import { getCategories } from "@/services/category";
+import { getPaymentMethods } from "@/services/payment-method";
 import { TransactionList } from "@/components/TransactionList";
 
 export default async function TransactionsPage({
@@ -16,7 +17,7 @@ export default async function TransactionsPage({
   const page = parseInt(params.page || "1", 10);
   const limit = 20;
 
-  const [result, categories] = await Promise.all([
+  const [result, categories, paymentMethods] = await Promise.all([
     listTransactions(userId, {
       page,
       limit,
@@ -26,6 +27,7 @@ export default async function TransactionsPage({
       sortOrder: "desc",
     }),
     getCategories(userId),
+    getPaymentMethods(userId),
   ]);
 
   const serializedCategories = categories.map((c) => ({
@@ -36,12 +38,19 @@ export default async function TransactionsPage({
     type: c.type,
   }));
 
+  const serializedPaymentMethods = paymentMethods.map((p) => ({
+    _id: (p._id as object).toString(),
+    name: p.name,
+    icon: p.icon,
+  }));
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Transactions</h1>
       <TransactionList
         transactions={JSON.parse(JSON.stringify(result.transactions))}
         categories={serializedCategories}
+        paymentMethods={serializedPaymentMethods}
         pagination={result.pagination}
       />
     </div>

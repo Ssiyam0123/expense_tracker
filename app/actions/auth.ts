@@ -7,6 +7,9 @@ import { User } from "@/models/User";
 import { logger } from "@/lib/logger";
 import { signupSchema } from "@/schemas/auth";
 import { ZodError } from "zod";
+import { signIn } from "@/lib/auth";
+import { AuthError } from "next-auth";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 export type SignupState = {
   errors?: {
@@ -51,8 +54,23 @@ export async function signupAction(
 
     logger.info({ email: data.email }, "New user created via credentials");
 
+    // Automatically sign in the user and redirect to dashboard
+    await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirectTo: "/dashboard",
+    });
+
     return { success: true };
   } catch (err) {
+    if (isRedirectError(err)) {
+      throw err;
+    }
+    if (err instanceof AuthError) {
+      return {
+        errors: { _form: ["Account created but failed to sign in automatically. Please sign in manually."] },
+      };
+    }
     if (err instanceof ZodError) {
       return { errors: err.flatten().fieldErrors };
     }

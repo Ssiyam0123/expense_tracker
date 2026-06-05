@@ -192,13 +192,13 @@ export function DashboardSummary({ summary, transactions }: Props) {
   }, [hoveredDay, areaChartData]);
 
   return (
-    <div className="relative space-y-6">
+    <div className="relative space-y-6 overflow-hidden">
       {/* Background neon glow blobs for glassmorphism aesthetic */}
       <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-accent/10 blur-[120px]" />
       <div className="pointer-events-none absolute -right-20 -bottom-20 h-72 w-72 rounded-full bg-pink-500/10 blur-[120px]" />
 
       {/* Main summary cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {/* Income Card */}
         <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 shadow-2xl backdrop-blur-xl transition-all hover:bg-white/[0.05] hover:shadow-accent/5">
           <div className="absolute top-0 left-0 h-[2px] w-full bg-gradient-to-r from-transparent via-income/40 to-transparent" />
@@ -253,9 +253,9 @@ export function DashboardSummary({ summary, transactions }: Props) {
       </div>
 
       {/* Charts section: Flow Chart & Donut Chart */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Cash Flow Area Chart */}
-        <div className="lg:col-span-2 relative rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 shadow-2xl backdrop-blur-xl">
+        <div className="lg:col-span-2 min-w-0 overflow-hidden relative rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 shadow-2xl backdrop-blur-xl">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold tracking-tight text-white">
@@ -277,11 +277,12 @@ export function DashboardSummary({ summary, transactions }: Props) {
             </div>
           </div>
 
-          <div className="relative w-full overflow-hidden">
-            <svg
-              viewBox={`0 0 ${areaChartData.width} ${areaChartData.height}`}
-              className="w-full h-auto overflow-visible"
-            >
+          <div className="relative w-full overflow-x-auto pb-2 scrollbar-thin">
+            <div className="min-w-[600px] w-full">
+              <svg
+                viewBox={`0 0 ${areaChartData.width} ${areaChartData.height}`}
+                className="w-full h-auto overflow-visible"
+              >
               <defs>
                 <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
@@ -452,6 +453,7 @@ export function DashboardSummary({ summary, transactions }: Props) {
             </svg>
           </div>
         </div>
+      </div>
 
         {/* Spending breakdown by Category (Donut Chart) */}
         <div className="relative rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 shadow-2xl backdrop-blur-xl">
@@ -511,12 +513,12 @@ export function DashboardSummary({ summary, transactions }: Props) {
                     key={cat.categoryName}
                     className="flex items-center justify-between text-xs transition-colors hover:text-white"
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
                       <span
-                        className="h-2 w-2 rounded-full"
+                        className="h-2 w-2 rounded-full shrink-0"
                         style={{ backgroundColor: cat.categoryColor || "#6366F1" }}
                       />
-                      <span className="text-slate-300 font-medium truncate max-w-[80px]">
+                      <span className="text-slate-300 font-medium truncate">
                         {cat.categoryIcon} {cat.categoryName}
                       </span>
                     </div>
@@ -543,7 +545,7 @@ export function DashboardSummary({ summary, transactions }: Props) {
           </h3>
           <p className="mb-4 text-xs text-slate-400">Spend vs. budget limit</p>
           
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             {budgetStatus.map((b) => {
               const pct = b.percentage;
               return (

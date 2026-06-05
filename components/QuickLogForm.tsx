@@ -187,7 +187,7 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
       });
 
       const body = await res.json();
-      if (res.ok && body.success) {
+      if (res.ok && body.data) {
         const newCat = body.data;
         setNewLocalCategories((prev) => [...prev, newCat]);
         setCategoryId(newCat._id);
@@ -244,9 +244,9 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
           </button>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-12 items-end">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12 items-end">
           {/* Amount */}
-          <div className="lg:col-span-3">
+          <div className="sm:col-span-1 lg:col-span-3">
             <label className="mb-1 block text-xs font-medium text-slate-400">Amount</label>
             <div className="relative">
               <input
@@ -266,7 +266,7 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
           </div>
 
           {/* Category Dropdown */}
-          <div className="lg:col-span-3">
+          <div className="sm:col-span-1 lg:col-span-3">
             <label className="mb-1 block text-xs font-medium text-slate-400">Category</label>
             <div className="relative">
               <select
@@ -301,7 +301,7 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
           </div>
 
           {/* Calendar Date Picker */}
-          <div className="lg:col-span-2">
+          <div className="sm:col-span-1 lg:col-span-2">
             <label className="mb-1 block text-xs font-medium text-slate-400">Date</label>
             <input
               type="date"
@@ -313,7 +313,7 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
           </div>
 
           {/* Note */}
-          <div className="lg:col-span-3">
+          <div className="sm:col-span-1 lg:col-span-3">
             <label className="mb-1 block text-xs font-medium text-slate-400">Note</label>
             <input
               type="text"
@@ -326,7 +326,7 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
           </div>
 
           {/* Submit */}
-          <div className="lg:col-span-1">
+          <div className="sm:col-span-2 lg:col-span-1">
             <button
               type="submit"
               disabled={submitting || !amount}
@@ -429,10 +429,23 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
                 />
               </div>
 
-              {/* Icon Presets */}
+              {/* Icon Presets & Custom Input */}
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-slate-400">Choose Icon</label>
-                <div className="grid grid-cols-8 gap-2 p-2 rounded-lg border border-white/[0.05] bg-slate-900/40">
+                <div className="flex items-center gap-3 mb-2">
+                  <input
+                    type="text"
+                    value={newCatIcon}
+                    onChange={(e) => setNewCatIcon(e.target.value)}
+                    placeholder="🍔"
+                    maxLength={5}
+                    className="w-16 rounded-lg border border-white/[0.08] bg-slate-900/60 py-2 text-center text-base text-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50"
+                  />
+                  <span className="text-xs text-slate-400">
+                    Type/paste any emoji, or select a preset below:
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2 p-2 rounded-lg border border-white/[0.05] bg-slate-900/40 justify-center sm:justify-start">
                   {EMOJI_PRESETS.map((emoji) => (
                     <button
                       key={emoji}
@@ -450,9 +463,36 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
                 </div>
               </div>
 
-              {/* Color Presets */}
+              {/* Color Presets & Custom Picker */}
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-slate-400">Choose Color</label>
+                <div className="flex items-center gap-3 mb-2">
+                  <div
+                    className="relative h-8 w-8 rounded-full border border-white/[0.12] overflow-hidden cursor-pointer shadow-inner flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95"
+                    style={{ backgroundColor: newCatColor }}
+                  >
+                    <input
+                      type="color"
+                      value={newCatColor}
+                      onChange={(e) => setNewCatColor(e.target.value)}
+                      className="absolute inset-0 opacity-0 cursor-pointer h-full w-full"
+                    />
+                    <span className="text-[10px] pointer-events-none mix-blend-difference text-white font-bold">
+                      🎨
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    value={newCatColor}
+                    onChange={(e) => setNewCatColor(e.target.value)}
+                    placeholder="#3B82F6"
+                    maxLength={7}
+                    className="w-24 rounded-lg border border-white/[0.08] bg-slate-900/60 px-2.5 py-1.5 text-xs text-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50 uppercase"
+                  />
+                  <span className="text-xs text-slate-400">
+                    Click color circle or pick a preset:
+                  </span>
+                </div>
                 <div className="flex flex-wrap gap-2 p-2 rounded-lg border border-white/[0.05] bg-slate-900/40">
                   {COLOR_PRESETS.map((color) => (
                     <button
