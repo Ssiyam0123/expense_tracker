@@ -5,10 +5,11 @@ import { Platform } from "react-native";
 const TOKEN_KEY = "session_token";
 const DEVICE_ID_KEY = "device_id";
 
-let API_URL = "http://localhost:3000/api/v1";
+let API_URL = "https://expense-tracker-two-opal-27.vercel.app/api/v1";
 
 export function setApiBaseUrl(url: string) {
   API_URL = url;
+  apiClient.defaults.baseURL = url;
 }
 
 export function getApiBaseUrl(): string {
@@ -21,11 +22,12 @@ export const apiClient = axios.create({
     "Content-Type": "application/json",
   },
   timeout: 15000,
+  withCredentials: true,
 });
 
 // Attach auth token to every request
 apiClient.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync(TOKEN_KEY);
+  const token = await getSessionToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -38,7 +40,7 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid - could trigger a sign-out here
-      SecureStore.deleteItemAsync(TOKEN_KEY).catch(() => {});
+      clearSessionToken().catch(() => {});
     }
     return Promise.reject(error);
   }
