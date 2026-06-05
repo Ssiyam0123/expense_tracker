@@ -63,7 +63,7 @@ export default function LoginScreen() {
 
     try {
       // Step 1: Get CSRF token from NextAuth
-      const csrfRes = await apiClient.get("/../../api/auth/csrf");
+      const csrfRes = await apiClient.get("../../api/auth/csrf");
       const csrfToken = csrfRes.data?.csrfToken;
 
       if (!csrfToken) {
@@ -82,7 +82,7 @@ export default function LoginScreen() {
       });
 
       const signInRes = await apiClient.post(
-        "/../../api/auth/callback/credentials",
+        "../../api/auth/callback/credentials",
         body,
         {
           headers: {
@@ -94,7 +94,7 @@ export default function LoginScreen() {
       // NextAuth returns a redirect on success
       if (signInRes.data?.url) {
         // Get session token from the session endpoint
-        const sessionRes = await apiClient.get("/../../api/auth/session");
+        const sessionRes = await apiClient.get("../../api/auth/session");
         if (sessionRes.data?.user?.id) {
           // Store a simple token derived from the user ID for Bearer auth
           // In production, the server should issue a dedicated JWT for mobile
