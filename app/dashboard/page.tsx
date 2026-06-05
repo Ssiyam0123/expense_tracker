@@ -20,7 +20,13 @@ export default async function DashboardPage() {
     getDashboardSummary(userId, month, year),
     getCategories(userId),
     getPaymentMethods(userId),
-    listTransactions(userId, { limit: 100, page: 1 }),
+    // line 23
+    listTransactions(userId, {
+      limit: 100,
+      page: 1,
+      sortBy: "createdAt", // Must be "createdAt" | "amountMinor" | "timestamp"
+      sortOrder: "desc", // Must be "asc" | "desc"
+    }),
   ]);
 
   // Serialize Mongoose objects to plain objects
