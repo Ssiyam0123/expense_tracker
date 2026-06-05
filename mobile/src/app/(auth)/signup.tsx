@@ -13,6 +13,12 @@ import { Link, useRouter } from "expo-router";
 import { useAuthStore } from "@/stores/auth";
 import { apiClient } from "@/lib/api";
 
+function formUrlEncode(obj: Record<string, string>): string {
+  return Object.entries(obj)
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join("&");
+}
+
 function toBase64(str: string): string {
   if (typeof btoa !== "undefined") return btoa(str);
   const chars =
@@ -36,20 +42,14 @@ export default function SignupScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSignup = async () => {
     setError(null);
 
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name || !email || !password) {
       setError("All fields are required");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
       return;
     }
 
@@ -61,47 +61,40 @@ export default function SignupScreen() {
     setIsLoading(true);
 
     try {
-      // Call the server's signup via the credentials signup flow
+      // Signup via the API v1 signup route (JSON)
+      const signupRes = await apiClient.post("/signup", { name, email, password });
+
+      if (signupRes.data?.error) {
+        setError(signupRes.data.error.message || "Signup failed");
+        setIsLoading(false);
+        return;
+      }
+
+      // Signup succeeded, now log in automatically
       // First get CSRF token
-      const csrfRes = await apiClient.get("/../api/auth/csrf");
+      const csrfRes = await apiClient.get("/../../api/auth/csrf");
       const csrfToken = csrfRes.data?.csrfToken;
 
       if (!csrfToken) {
-        setError("Unable to connect to server. Check your server URL.");
+        setError("Account created but could not sign in automatically.");
         setIsLoading(false);
         return;
       }
 
-      // Signup via the NextAuth signup flow
-      // POST to the signup server action endpoint
-      const signupBody = new URLSearchParams({ name, email, password }).toString();
-      const signupRes = await apiClient.post("/../api/auth/signup", signupBody, {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      });
-
-      if (signupRes.status !== 200 && signupRes.status !== 303) {
-        const errorMsg =
-          signupRes.data?.error?.message || signupRes.data?.errors?.email?.[0] || "Signup failed";
-        setError(errorMsg);
-        setIsLoading(false);
-        return;
-      }
-
-      // Signup succeeded, now login
-      const loginBody = new URLSearchParams({
+      const loginBody = formUrlEncode({
         email,
         password,
         csrfToken,
         callbackUrl: "/dashboard",
         json: "true",
-      }).toString();
+      });
 
-      await apiClient.post("/../api/auth/callback/credentials", loginBody, {
+      await apiClient.post("/../../api/auth/callback/credentials", loginBody, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
 
       // Get session
-      const sessionRes = await apiClient.get("/../api/auth/session");
+      const sessionRes = await apiClient.get("/../../api/auth/session");
       if (sessionRes.data?.user?.id) {
         const mobileToken = toBase64(
           JSON.stringify({
@@ -193,19 +186,6 @@ export default function SignupScreen() {
               </Text>
             </View>
 
-            <View className="gap-2">
-              <Text className="text-zinc-300 text-sm font-medium">
-                Confirm Password
-              </Text>
-              <TextInput
-                className="bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3.5 text-white text-base"
-                placeholder="••••••••"
-                placeholderTextColor="#71717a"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-              />
-            </View>
 
             {error && (
               <View className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">
