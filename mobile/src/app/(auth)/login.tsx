@@ -196,21 +196,6 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Server URL config */}
-          <View className="gap-2">
-            <Text className="text-zinc-500 text-xs text-center">
-              Server URL
-            </Text>
-            <TextInput
-              className="bg-white/[0.04] border border-white/[0.05] rounded-lg px-3 py-2 text-zinc-400 text-xs text-center"
-              value={serverUrl}
-              onChangeText={setServerUrl}
-              placeholder="http://localhost:3000/api/v1"
-              placeholderTextColor="#52525b"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
 
           {/* Signup link */}
           <View className="flex-row justify-center gap-1">
