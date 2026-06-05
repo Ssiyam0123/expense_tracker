@@ -111,7 +111,7 @@ export default function SignupScreen() {
           })
         );
         await signIn(mobileToken, serverUrl);
-        router.replace("/index");
+        router.replace("/index" as any);
         return;
       }
 

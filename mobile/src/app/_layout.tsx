@@ -1,13 +1,12 @@
 import { useEffect } from "react";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { View, ActivityIndicator } from "react-native";
-import { useColorScheme } from "react-native";
-import { useAuthStore } from "@/stores/auth";
+import { View, ActivityIndicator, useColorScheme } from "react-native";
+import { useAuth } from "@/hooks/useAuth";
 import "../global.css";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { isSignedIn, isLoading } = useAuthStore();
+  const { isSignedIn, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -19,7 +18,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!isSignedIn && !inAuthGroup) {
       router.replace("/(auth)/login");
     } else if (isSignedIn && inAuthGroup) {
-      router.replace("/index");
+      router.replace("/index" as any);
     }
   }, [isSignedIn, isLoading, segments]);
 

@@ -106,7 +106,7 @@ export default function LoginScreen() {
             })
           );
           await signIn(mobileToken, serverUrl);
-          router.replace("/index");
+          router.replace("/index" as any);
           return;
         }
       }

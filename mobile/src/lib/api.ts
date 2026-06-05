@@ -1,5 +1,6 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 
 const TOKEN_KEY = "session_token";
 const DEVICE_ID_KEY = "device_id";
@@ -46,14 +47,25 @@ apiClient.interceptors.response.use(
 // ─── Auth helpers ───────────────────────────────────────────────
 
 export async function setSessionToken(token: string): Promise<void> {
+  if (Platform.OS === "web") {
+    localStorage.setItem(TOKEN_KEY, token);
+    return;
+  }
   await SecureStore.setItemAsync(TOKEN_KEY, token);
 }
 
 export async function getSessionToken(): Promise<string | null> {
+  if (Platform.OS === "web") {
+    return localStorage.getItem(TOKEN_KEY);
+  }
   return SecureStore.getItemAsync(TOKEN_KEY);
 }
 
 export async function clearSessionToken(): Promise<void> {
+  if (Platform.OS === "web") {
+    localStorage.removeItem(TOKEN_KEY);
+    return;
+  }
   await SecureStore.deleteItemAsync(TOKEN_KEY);
 }
 
@@ -65,6 +77,14 @@ export async function isAuthenticated(): Promise<boolean> {
 // ─── Device ID ──────────────────────────────────────────────────
 
 export async function getDeviceId(): Promise<string> {
+  if (Platform.OS === "web") {
+    let deviceId = localStorage.getItem(DEVICE_ID_KEY);
+    if (!deviceId) {
+      deviceId = generateDeviceId();
+      localStorage.setItem(DEVICE_ID_KEY, deviceId);
+    }
+    return deviceId;
+  }
   let deviceId = await SecureStore.getItemAsync(DEVICE_ID_KEY);
   if (!deviceId) {
     deviceId = generateDeviceId();
