@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
@@ -27,26 +26,37 @@ export async function middleware(req: NextRequest) {
     response = NextResponse.next();
   } else if (path.startsWith("/_next") || path.startsWith("/favicon")) {
     response = NextResponse.next();
-  } else if (path.startsWith("/api/")) {
-    // API routes auth check
-    const session = await auth();
-    if (!session?.user?.id) {
-      response = NextResponse.json(
-        { data: null, error: { code: "UNAUTHORIZED", message: "Authentication required", details: null }, meta: {} },
-        { status: 401 }
-      );
-    } else {
-      response = NextResponse.next();
-    }
   } else {
-    // Protected pages auth check
-    const session = await auth();
-    if (!session?.user?.id) {
-      const loginUrl = new URL("/login", req.url);
-      loginUrl.searchParams.set("callbackUrl", path);
-      response = NextResponse.redirect(loginUrl);
+    // Check for NextAuth session cookies
+    const sessionToken =
+      req.cookies.get("authjs.session-token")?.value ||
+      req.cookies.get("__Secure-authjs.session-token")?.value;
+
+    // Check for Mobile Bearer token
+    const authHeader = req.headers.get("authorization");
+    const hasBearerToken = authHeader && authHeader.startsWith("Bearer ");
+
+    const isAuthorized = sessionToken || hasBearerToken;
+
+    if (path.startsWith("/api/")) {
+      // API routes auth check
+      if (!isAuthorized) {
+        response = NextResponse.json(
+          { data: null, error: { code: "UNAUTHORIZED", message: "Authentication required", details: null }, meta: {} },
+          { status: 401 }
+        );
+      } else {
+        response = NextResponse.next();
+      }
     } else {
-      response = NextResponse.next();
+      // Protected pages auth check
+      if (!isAuthorized) {
+        const loginUrl = new URL("/login", req.url);
+        loginUrl.searchParams.set("callbackUrl", path);
+        response = NextResponse.redirect(loginUrl);
+      } else {
+        response = NextResponse.next();
+      }
     }
   }
 
