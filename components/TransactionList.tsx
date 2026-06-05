@@ -164,152 +164,165 @@ export function TransactionList({ transactions, categories, paymentMethods, pagi
   return (
     <div>
       {/* Filters */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        <select
-          value={currentType}
-          onChange={(e) => updateFilter("type", e.target.value)}
-          className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
-        >
-          <option value="">All types</option>
-          <option value="expense">Expense</option>
-          <option value="income">Income</option>
-        </select>
-        <select
-          value={currentCategory}
-          onChange={(e) => updateFilter("categoryId", e.target.value)}
-          className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
-        >
-          <option value="">All categories</option>
-          {categories.map((c) => (
-            <option key={c._id} value={c._id}>
-              {c.icon} {c.name}
-            </option>
-          ))}
-        </select>
+      <div className="mb-6 flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-1 gap-2">
+          <select
+            value={currentType}
+            onChange={(e) => updateFilter("type", e.target.value)}
+            className="flex-1 sm:flex-none rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-3.5 py-2.5 text-sm text-white focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all cursor-pointer hover:border-white/[0.15]"
+          >
+            <option value="" className="bg-slate-950 text-white">All types</option>
+            <option value="expense" className="bg-slate-950 text-white">Expense</option>
+            <option value="income" className="bg-slate-950 text-white">Income</option>
+          </select>
+          <select
+            value={currentCategory}
+            onChange={(e) => updateFilter("categoryId", e.target.value)}
+            className="flex-1 sm:flex-none rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-3.5 py-2.5 text-sm text-white focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all cursor-pointer hover:border-white/[0.15]"
+          >
+            <option value="" className="bg-slate-950 text-white">All categories</option>
+            {categories.map((c) => (
+              <option key={c._id} value={c._id} className="bg-slate-950 text-white">
+                {c.icon} {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <a
           href="/api/v1/export.csv"
-          className="ml-auto rounded-lg border border-border px-3 py-2 text-sm text-muted transition-colors hover:bg-card-hover hover:text-foreground"
+          className="w-full sm:w-auto text-center flex items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-4 py-2.5 text-sm text-slate-300 font-semibold transition-all hover:bg-white/5 hover:border-white/[0.15] hover:text-white"
         >
-          Export CSV
+          📤 Export CSV
         </a>
       </div>
 
       {/* Transaction list */}
-      <div className="overflow-hidden rounded-xl border border-border">
-        {transactions.length === 0 ? (
-          <div className="p-12 text-center text-muted">
-            <p className="text-lg">No transactions found</p>
-            <p className="mt-1 text-sm">Add your first transaction from the dashboard</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-border">
-            {transactions.map((tx) => (
-              <div
-                key={tx._id}
-                className="flex items-center justify-between px-5 py-3 transition-colors hover:bg-card-hover/50"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-border text-lg">
+      {transactions.length === 0 ? (
+        <div className="p-12 text-center text-muted rounded-2xl border border-white/[0.08] bg-slate-900/40 backdrop-blur-md">
+          <p className="text-lg">No transactions found</p>
+          <p className="mt-1 text-sm">Add your first transaction from the dashboard</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {transactions.map((tx) => (
+            <div
+              key={tx._id}
+              className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 transition-all duration-300 hover:bg-white/[0.04] hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/20 flex flex-col gap-3"
+            >
+              {/* Type left border accent */}
+              <div className={`absolute left-0 top-0 h-full w-[3.5px] ${tx.type === "expense" ? "bg-danger" : "bg-income"}`} />
+              
+              {/* Top Row: Icon, Category Name, Badge (Left) & Amount (Right) */}
+              <div className="flex items-center justify-between gap-3 pl-1">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.06] text-xl shadow-inner">
                     {tx.categoryId?.icon || (tx.type === "income" ? "💰" : "💸")}
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">
-                      {tx.categoryId?.name || "Unknown"}
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-muted">
-                      <span>{tx.paymentMethodId?.name || "Unknown"}</span>
-                      <span>•</span>
-                      <span>
-                        {new Date(tx.timestamp).toLocaleDateString("en-GB", {
-                          day: "numeric",
-                          month: "short",
-                        })}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="text-sm font-semibold text-white tracking-tight truncate">
+                        {tx.categoryId?.name || "Unknown"}
+                      </h4>
+                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase ${
+                        tx.type === "expense" ? "bg-danger/10 text-danger border border-danger/20" : "bg-income/10 text-income border border-income/20"
+                      }`}>
+                        {tx.type}
                       </span>
-                      {tx.note && (
-                        <>
-                          <span>•</span>
-                          <span className="truncate max-w-[120px]">{tx.note}</span>
-                        </>
-                      )}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <p
-                    className={`font-mono text-sm font-semibold tabular-nums ${
-                      tx.type === "expense" ? "text-expense" : "text-income"
-                    }`}
-                  >
-                    {tx.type === "expense" ? "−" : "+"}৳
-                    {fromMinorUnits(tx.amountMinor).toLocaleString()}
+
+                <div className="text-right shrink-0">
+                  <p className={`font-mono text-base font-bold tracking-tight tabular-nums ${
+                    tx.type === "expense" ? "text-danger" : "text-income"
+                  }`}>
+                    {tx.type === "expense" ? "−" : "+"}৳{fromMinorUnits(tx.amountMinor).toLocaleString()}
                   </p>
+                </div>
+              </div>
+              
+              {/* Second Row: Pills (Payment Method, Date) & Actions */}
+              <div className="flex items-center justify-between gap-2 border-t border-white/[0.04] pt-3 pl-1 mt-0.5">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-slate-400">
+                  <span className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.05] rounded-lg px-2 py-1">
+                    <span className="text-sm shrink-0">{tx.paymentMethodId?.icon || "💳"}</span>
+                    <span className="font-semibold text-slate-300">{tx.paymentMethodId?.name || "Unknown"}</span>
+                  </span>
+                  
+                  <span className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.05] rounded-lg px-2 py-1 font-mono text-[11px]">
+                    📅 {new Date(tx.timestamp).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+
+                  {tx.note && (
+                    <span className="hidden sm:flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.05] rounded-lg px-2 py-1 max-w-[200px] xl:max-w-[300px]" title={tx.note}>
+                      💬 <span className="italic truncate">{tx.note}</span>
+                    </span>
+                  )}
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex items-center gap-0.5 bg-white/[0.02] border border-white/[0.05] rounded-xl p-0.5 shadow-sm">
                   <button
                     onClick={() => handleStartEdit(tx)}
-                    className="rounded-lg p-1 text-muted transition-colors hover:bg-accent/15 hover:text-accent"
+                    className="rounded-lg p-1.5 text-slate-400 hover:text-accent hover:bg-accent/15 transition-all"
                     title="Edit transaction"
                   >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </button>
                   <button
                     onClick={() => handleDelete(tx._id)}
-                    className="rounded-lg p-1 text-muted transition-colors hover:bg-expense/10 hover:text-expense"
+                    className="rounded-lg p-1.5 text-slate-400 hover:text-danger hover:bg-danger/15 transition-all"
                     title="Delete transaction"
                   >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+
+              {/* Note Row for Mobile */}
+              {tx.note && (
+                <div className="sm:hidden pl-1 mt-0.5">
+                  <div className="bg-white/[0.015] border border-white/[0.05] rounded-xl p-3 text-xs text-slate-400 italic leading-relaxed flex items-start gap-2 break-words min-w-0">
+                    <span className="text-slate-500 shrink-0">💬</span>
+                    <span className="flex-1 min-w-0">{tx.note}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-muted">
-          <p>
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400 border-t border-white/[0.06] pt-4">
+          <p className="text-xs sm:text-sm">
             Showing {(pagination.page - 1) * pagination.limit + 1}–
             {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
-            {pagination.total}
+            {pagination.total} transactions
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <button
               onClick={() => goToPage(pagination.page - 1)}
               disabled={pagination.page <= 1}
-              className="rounded-lg border border-border px-3 py-1.5 transition-colors hover:bg-card-hover disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 sm:flex-none rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-xs font-semibold text-slate-300 transition-all hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-30"
             >
-              Previous
+              ← Previous
             </button>
             <button
               onClick={() => goToPage(pagination.page + 1)}
               disabled={pagination.page >= pagination.totalPages}
-              className="rounded-lg border border-border px-3 py-1.5 transition-colors hover:bg-card-hover disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 sm:flex-none rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-xs font-semibold text-slate-300 transition-all hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-30"
             >
-              Next
+              Next →
             </button>
           </div>
         </div>

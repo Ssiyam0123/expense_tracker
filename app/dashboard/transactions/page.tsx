@@ -46,7 +46,10 @@ export default async function TransactionsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Transactions</h1>
+      <div className="flex flex-col gap-1.5">
+        <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Transactions</h1>
+        <p className="text-sm text-slate-400">View, filter, and manage your income and expenses.</p>
+      </div>
       <TransactionList
         transactions={JSON.parse(JSON.stringify(result.transactions))}
         categories={serializedCategories}
