@@ -136,7 +136,7 @@ try {
   // 2. Enable ABI splits (only build for modern arm64-v8a) in app/build.gradle
   const buildGradlePath = path.join(buildDir, 'app/build.gradle');
   if (fs.existsSync(buildGradlePath)) {
-    console.log('⚡ Configuring ABI splits to target modern 64-bit devices (arm64-v8a only)...');
+    console.log('⚡ Configuring ABI splits and filters to target modern 64-bit devices (arm64-v8a only)...');
     let buildGradle = fs.readFileSync(buildGradlePath, 'utf8');
     
     const splitsBlock = `
@@ -150,7 +150,14 @@ try {
     }
     `;
     
+    const ndkBlock = `
+        ndk {
+            abiFilters "arm64-v8a"
+        }
+    `;
+    
     buildGradle = buildGradle.replace('android {', 'android {\n' + splitsBlock);
+    buildGradle = buildGradle.replace('defaultConfig {', 'defaultConfig {\n' + ndkBlock);
     fs.writeFileSync(buildGradlePath, buildGradle, 'utf8');
   }
 
