@@ -17,8 +17,14 @@ export function getApiBaseUrl(): string {
 }
 
 export function getAuthBaseUrl(): string {
-  const base = API_URL.replace(/\/api\/v1\/?$/, "").replace(/\/v1\/?$/, "");
-  return `${base}/api/auth`;
+  // NextAuth routes reside on the Next.js frontend web app, not the Express backend.
+  // If the API_URL points to a local environment, route to local Next.js frontend (port 3000).
+  if (API_URL.includes("localhost:") || API_URL.includes("127.0.0.1:") || API_URL.includes("10.0.2.2:")) {
+    const host = API_URL.includes("10.0.2.2") ? "10.0.2.2" : "localhost";
+    return `http://${host}:3000/api/auth`;
+  }
+  // Otherwise, route to the production Next.js frontend deployment.
+  return "https://expense-tracker-two-opal-27.vercel.app/api/auth";
 }
 
 export const apiClient = axios.create({
