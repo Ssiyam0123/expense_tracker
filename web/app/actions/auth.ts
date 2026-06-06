@@ -1,15 +1,13 @@
 "use server";
 
-import bcrypt from "bcryptjs";
-import { MongoServerError } from "mongodb";
-import { connectDB } from "@/lib/db";
-import { User } from "@/models/User";
 import { logger } from "@/lib/logger";
 import { signupSchema } from "@/schemas/auth";
 import { ZodError } from "zod";
 import { signIn } from "@/lib/auth";
 import { AuthError } from "next-auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export type SignupState = {
   errors?: {
@@ -32,27 +30,35 @@ export async function signupAction(
       password: formData.get("password"),
     });
 
-    await connectDB();
+    const res = await fetch(`${BACKEND_URL}/api/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      }),
+    });
 
-    // Check for existing user
-    const existing = await User.findOne({ email: data.email });
-    if (existing) {
+    const result = await res.json();
+
+    if (!res.ok) {
+      if (result.error && result.error.code === "VALIDATION") {
+        if (result.error.message?.includes("exists")) {
+          return {
+            errors: { email: ["An account with this email already exists"] },
+          };
+        }
+        return {
+          errors: result.error.details || { _form: [result.error.message] },
+        };
+      }
       return {
-        errors: { email: ["An account with this email already exists"] },
+        errors: { _form: [result.error?.message || "Signup failed"] },
       };
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(data.password, 12);
-
-    await User.create({
-      email: data.email,
-      name: data.name,
-      password: hashedPassword,
-      provider: "credentials",
-    });
-
-    logger.info({ email: data.email }, "New user created via credentials");
+    logger.info({ email: data.email }, "New user created via Express API signup");
 
     // Automatically sign in the user and redirect to dashboard
     await signIn("credentials", {
@@ -73,22 +79,6 @@ export async function signupAction(
     }
     if (err instanceof ZodError) {
       return { errors: err.flatten().fieldErrors };
-    }
-    if (err instanceof MongoServerError && err.code === 11000) {
-      return {
-        errors: { email: ["An account with this email already exists"] },
-      };
-    }
-    // Detect MongoDB connection errors
-    if (err instanceof Error && err.message?.includes("ECONNREFUSED")) {
-      return {
-        errors: { _form: ["Unable to connect to the database. Please try again later."] },
-      };
-    }
-    if (err instanceof Error && err.name === "MongooseServerSelectionError") {
-      return {
-        errors: { _form: ["Unable to connect to the database. Please try again later."] },
-      };
     }
     logger.error({ err }, "Signup error");
     return { errors: { _form: ["Something went wrong. Please try again."] } };

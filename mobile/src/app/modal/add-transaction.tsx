@@ -65,6 +65,19 @@ export default function AddTransactionModal() {
     fetchPaymentMethods();
   }, []);
 
+  useEffect(() => {
+    if (paymentMethods && paymentMethods.length > 0 && !paymentMethodId) {
+      const cashPm = paymentMethods.find(
+        (pm) => pm.name.toLowerCase() === "cash"
+      );
+      if (cashPm) {
+        setPaymentMethodId(cashPm._id);
+      } else {
+        setPaymentMethodId(paymentMethods[0]._id);
+      }
+    }
+  }, [paymentMethods, paymentMethodId]);
+
   const filteredCategories = categories.filter((c) => c.type === txType);
 
   const handleSave = async () => {

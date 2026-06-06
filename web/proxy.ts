@@ -24,7 +24,7 @@ export default async function proxy(req: NextRequest) {
 
   if (publicPaths.some((p) => path.startsWith(p))) {
     response = NextResponse.next();
-  } else if (path.startsWith("/_next") || path.startsWith("/favicon")) {
+  } else if (path.startsWith("/_next") || path.startsWith("/favicon") || path === "/logo.png" || path === "/icon.png") {
     response = NextResponse.next();
   } else {
     // Check for NextAuth session cookies

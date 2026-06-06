@@ -1,11 +1,10 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import { connectDB } from "@/lib/db";
-import { User } from "@/models/User";
 import { logger } from "@/lib/logger";
 import { loginSchema } from "@/schemas/auth";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -29,27 +28,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const { email, password } = parsed.data;
 
         try {
-          await connectDB();
-          const user = await User.findOne({ email, provider: "credentials" }).select("+password");
+          const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
 
-          if (!user || !user.password) {
+          if (!res.ok) {
             return null;
           }
 
-          const isMatch = await bcrypt.compare(password, user.password);
-
-          if (!isMatch) {
-            return null;
+          const result = await res.json();
+          if (result.data && result.data.id) {
+            return {
+              id: result.data.id,
+              email: result.data.email,
+              name: result.data.name,
+              image: result.data.image || null,
+            };
           }
-
-          return {
-            id: user._id.toString(),
-            email: user.email,
-            name: user.name,
-            image: user.image,
-          };
+          return null;
         } catch (err) {
-          logger.error({ err }, "Credentials auth error");
+          logger.error({ err }, "Credentials auth error calling backend");
           return null;
         }
       },
@@ -59,48 +59,56 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async signIn({ user, account }) {
       if (account?.provider === "google") {
         try {
-          await connectDB();
-          const existingUser = await User.findOne({ email: user.email });
-          if (!existingUser) {
-            await User.create({
+          const res = await fetch(`${BACKEND_URL}/api/auth/google-login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
               email: user.email,
               name: user.name,
               image: user.image,
-              provider: "google",
               providerId: account.providerAccountId,
-            });
-            logger.info({ email: user.email }, "New user created via Google OAuth");
-          } else {
-            await User.updateOne(
-              { email: user.email },
-              {
-                $set: {
-                  name: user.name,
-                  image: user.image,
-                  providerId: account.providerAccountId,
-                  updatedAt: new Date(),
-                },
-              }
-            );
+            }),
+          });
+
+          if (!res.ok) {
+            return false;
           }
-          return true;
+
+          const result = await res.json();
+          if (result.data && result.data.id) {
+            user.id = result.data.id;
+            return true;
+          }
+          return false;
         } catch (err) {
-          logger.error({ err, email: user.email }, "Sign-in error");
+          logger.error({ err, email: user.email }, "Google Sign-in backend sync error");
           return false;
         }
       }
       return true;
     },
-    async session({ session }) {
-      if (session.user?.email) {
-        try {
-          await connectDB();
-          const dbUser = await User.findOne({ email: session.user.email }).lean();
-          if (dbUser) {
-            session.user.id = (dbUser._id as object).toString();
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        if (token.id) {
+          session.user.id = token.id as string;
+        } else if (session.user.email) {
+          try {
+            const res = await fetch(`${BACKEND_URL}/api/auth/user-by-email?email=${session.user.email}`);
+            if (res.ok) {
+              const result = await res.json();
+              if (result.data && result.data.id) {
+                session.user.id = result.data.id;
+              }
+            }
+          } catch (e) {
+            logger.error({ e }, "Session callback fallback error");
           }
-        } catch (err) {
-          logger.error({ err }, "Session callback error");
         }
       }
       return session;
