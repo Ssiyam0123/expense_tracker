@@ -1,10 +1,10 @@
-import { v4 as uuidv4 } from "uuid";
+import crypto from "node:crypto";
 
 /**
  * Generate a stable local ID (UUID v4) for offline-first transactions.
  */
 export function generateLocalId(): string {
-  return uuidv4();
+  return crypto.randomUUID();
 }
 
 /**
