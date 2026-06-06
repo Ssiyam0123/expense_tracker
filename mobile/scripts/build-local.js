@@ -123,6 +123,37 @@ copyIfExists(
 
 // Compile
 try {
+  // 1. Enable Minify and Shrink Resources in gradle.properties
+  const gradlePropertiesPath = path.join(buildDir, 'gradle.properties');
+  if (fs.existsSync(gradlePropertiesPath)) {
+    console.log('⚡ Enabling Minification and Resource Shrinking in gradle.properties...');
+    let gradleProps = fs.readFileSync(gradlePropertiesPath, 'utf8');
+    gradleProps += '\nandroid.enableMinifyInReleaseBuilds=true\n';
+    gradleProps += 'android.enableShrinkResourcesInReleaseBuilds=true\n';
+    fs.writeFileSync(gradlePropertiesPath, gradleProps, 'utf8');
+  }
+
+  // 2. Enable ABI splits (only build for modern arm64-v8a) in app/build.gradle
+  const buildGradlePath = path.join(buildDir, 'app/build.gradle');
+  if (fs.existsSync(buildGradlePath)) {
+    console.log('⚡ Configuring ABI splits to target modern 64-bit devices (arm64-v8a only)...');
+    let buildGradle = fs.readFileSync(buildGradlePath, 'utf8');
+    
+    const splitsBlock = `
+    splits {
+        abi {
+            reset()
+            enable true
+            universalApk false
+            include "arm64-v8a"
+        }
+    }
+    `;
+    
+    buildGradle = buildGradle.replace('android {', 'android {\n' + splitsBlock);
+    fs.writeFileSync(buildGradlePath, buildGradle, 'utf8');
+  }
+
   if (buildType === 'apk' || buildType === 'all') {
     console.log('🚀 Compiling APK (assembleRelease)...');
     execSync('.\\gradlew.bat assembleRelease', {
@@ -132,11 +163,18 @@ try {
     console.log('✅ APK compiled successfully.');
     
     // Copy APK back to workspace
-    const apkSource = path.join(buildDir, 'app/build/outputs/apk/release/app-release.apk');
-    const apkDest = path.resolve(sourceDir, '../builds/app-release.apk');
-    fs.mkdirSync(path.dirname(apkDest), { recursive: true });
-    fs.copyFileSync(apkSource, apkDest);
-    console.log(`💾 Saved APK to: ${apkDest}`);
+    const apkDir = path.join(buildDir, 'app/build/outputs/apk/release');
+    const files = fs.readdirSync(apkDir);
+    const apkFile = files.find(f => f.endsWith('.apk'));
+    if (apkFile) {
+      const apkSource = path.join(apkDir, apkFile);
+      const apkDest = path.resolve(sourceDir, '../builds/app-release.apk');
+      fs.mkdirSync(path.dirname(apkDest), { recursive: true });
+      fs.copyFileSync(apkSource, apkDest);
+      console.log(`💾 Saved APK to: ${apkDest}`);
+    } else {
+      console.error('❌ Could not find compiled APK file.');
+    }
   }
 
   if (buildType === 'aab' || buildType === 'all') {
