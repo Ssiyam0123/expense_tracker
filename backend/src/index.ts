@@ -109,6 +109,9 @@ async function start() {
   }
 }
 
-start();
+// Only start the standalone HTTP server if we are not in a Vercel Serverless environment.
+if (!process.env.VERCEL) {
+  start();
+}
 
 export default app;
