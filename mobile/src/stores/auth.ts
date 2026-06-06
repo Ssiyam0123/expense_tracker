@@ -23,7 +23,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
   isLoading: true,
   isSignedIn: false,
-  serverUrl: "http://localhost:5000/api/v1",
+  serverUrl: "https://expense-tracker-lg8x.vercel.app/api/v1",
 
   initialize: async () => {
     try {

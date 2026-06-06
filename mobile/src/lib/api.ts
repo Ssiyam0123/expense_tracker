@@ -5,7 +5,7 @@ import { Platform } from "react-native";
 const TOKEN_KEY = "session_token";
 const DEVICE_ID_KEY = "device_id";
 
-let API_URL = "http://localhost:5000/api/v1";
+let API_URL = "https://expense-tracker-lg8x.vercel.app/api/v1";
 
 export function setApiBaseUrl(url: string) {
   API_URL = url;
