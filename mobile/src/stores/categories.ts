@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { apiGet, apiPost, apiDelete } from "@/lib/api";
+import { apiGet, apiPost, apiPatch, apiDelete } from "@/lib/api";
 
 export interface Category {
   _id: string;

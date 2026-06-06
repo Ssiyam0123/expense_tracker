@@ -12,8 +12,8 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useCategoryStore, Category } from "@/stores/categories";
-
 import { useToastStore } from "@/stores/toast";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const CATEGORY_COLORS = [
   "#10B981", "#3B82F6", "#EC4899", "#F59E0B", "#EF4444",
@@ -120,7 +120,7 @@ export default function AddCategoryModal() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1"
     >
-      <View className="flex-1 bg-black">
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }} className="flex-1 bg-black" edges={["top", "left", "right"]}>
         {/* Neon blobs */}
         <View className="absolute top-[-50] left-[-50] w-[180] h-[180] bg-emerald-500 rounded-full opacity-10 blur-[80]" />
         
@@ -339,7 +339,7 @@ export default function AddCategoryModal() {
             </Text>
           )}
         </ScrollView>
-      </View>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }

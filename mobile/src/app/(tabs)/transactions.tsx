@@ -10,6 +10,7 @@ import {
 import { useRouter } from "expo-router";
 import { useTransactionStore } from "@/stores/transactions";
 import { TransactionCard } from "@/components/TransactionCard";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function TransactionsScreen() {
   const router = useRouter();
@@ -45,7 +46,7 @@ export default function TransactionsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-black">
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }} className="flex-1 bg-black" edges={["top", "left", "right"]}>
       {/* Neon blobs */}
       <View className="absolute top-[-40] left-[-30] w-[150] h-[150] bg-emerald-500 rounded-full opacity-8" />
 
@@ -134,6 +135,6 @@ export default function TransactionsScreen() {
           </View>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

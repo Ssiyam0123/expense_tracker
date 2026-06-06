@@ -13,6 +13,7 @@ import { useBudgetStore, Budget } from "@/stores/budgets";
 import { useCategoryStore } from "@/stores/categories";
 import { useDashboardStore } from "@/stores/dashboard";
 import { formatCurrency, getCurrentMonthYear, fromMinorUnits } from "@/lib/utils";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function BudgetsScreen() {
   const { budgets, isLoading, error, fetchBudgets, addBudget, updateBudget, removeBudget } =
@@ -94,7 +95,7 @@ export default function BudgetsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-black">
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }} className="flex-1 bg-black" edges={["top", "left", "right"]}>
       {/* Neon blobs */}
       <View className="absolute bottom-[-50] right-[-40] w-[200] h-[200] bg-emerald-500 rounded-full opacity-8" />
 
@@ -301,6 +302,6 @@ export default function BudgetsScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }

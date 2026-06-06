@@ -24,6 +24,7 @@ import { useCategoryStore } from "@/stores/categories";
 import { useTransactionStore } from "@/stores/transactions";
 import { formatCurrency, getCurrentMonthYear, fromMinorUnits } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -189,7 +190,7 @@ export default function DashboardScreen() {
   }, [transactions]);
 
   return (
-    <View className="flex-1 bg-black">
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }} className="flex-1 bg-black" edges={["top", "left", "right"]}>
       {/* Neon glow backgrounds */}
       <View className="absolute top-[-40] left-[-40] w-[200] h-[200] bg-emerald-500 rounded-full opacity-10 blur-[80]" />
       <View className="absolute bottom-[100] right-[-60] w-[220] h-[220] bg-emerald-600 rounded-full opacity-8 blur-[100]" />
@@ -421,7 +422,7 @@ export default function DashboardScreen() {
                       />
                       {donutData.map((cat, i) => (
                         <Circle
-                          key={cat.categoryId + "_" + i}
+                           key={cat.categoryId + "_" + i}
                           cx="60"
                           cy="60"
                           r="50"
@@ -540,6 +541,6 @@ export default function DashboardScreen() {
           </View>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

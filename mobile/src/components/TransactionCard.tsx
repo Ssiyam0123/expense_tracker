@@ -16,27 +16,27 @@ export function TransactionCard({
   const isIncome = transaction.type === "income";
 
   const categoryName =
-    typeof transaction.categoryId === "object"
+    typeof transaction.categoryId === "object" && transaction.categoryId !== null
       ? transaction.categoryId.name || "Unknown"
-      : transaction.categoryId;
+      : (transaction.categoryId || "Unknown");
 
   const categoryIcon =
-    typeof transaction.categoryId === "object"
+    typeof transaction.categoryId === "object" && transaction.categoryId !== null
       ? transaction.categoryId.icon || "📌"
       : "📌";
 
   const categoryColor =
-    typeof transaction.categoryId === "object"
+    typeof transaction.categoryId === "object" && transaction.categoryId !== null
       ? transaction.categoryId.color || "#71717a"
       : "#71717a";
 
   const paymentName =
-    typeof transaction.paymentMethodId === "object"
+    typeof transaction.paymentMethodId === "object" && transaction.paymentMethodId !== null
       ? transaction.paymentMethodId.name || "Unknown"
       : "Unknown";
 
   const paymentIcon =
-    typeof transaction.paymentMethodId === "object"
+    typeof transaction.paymentMethodId === "object" && transaction.paymentMethodId !== null
       ? transaction.paymentMethodId.icon || "💵"
       : "💵";
 

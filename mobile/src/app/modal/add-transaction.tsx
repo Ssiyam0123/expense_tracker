@@ -16,6 +16,7 @@ import { useCategoryStore } from "@/stores/categories";
 import { usePaymentMethodStore } from "@/stores/payment-methods";
 import { parseToMinorUnits } from "@/lib/utils";
 import { useToastStore } from "@/stores/toast";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AddTransactionModal() {
   const router = useRouter();
@@ -122,7 +123,7 @@ export default function AddTransactionModal() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1"
     >
-      <View className="flex-1 bg-black">
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }} className="flex-1 bg-black" edges={["top", "left", "right"]}>
         {/* Neon blobs */}
         <View
           className={`absolute top-[-40] right-[-20] w-[160] h-[160] rounded-full opacity-10 ${
@@ -430,7 +431,7 @@ export default function AddTransactionModal() {
             </View>
           </View>
         </Modal>
-      </View>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }
