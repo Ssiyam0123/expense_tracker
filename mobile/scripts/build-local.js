@@ -135,6 +135,13 @@ try {
       'reactNativeArchitectures=arm64-v8a'
     );
     
+    // Optimize build speed with caching and more memory
+    gradleProps = gradleProps.replace(
+      /org.gradle.jvmargs=.*/,
+      'org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m'
+    );
+    gradleProps += '\norg.gradle.caching=true\n';
+    
     gradleProps += '\nandroid.enableMinifyInReleaseBuilds=true\n';
     gradleProps += 'android.enableShrinkResourcesInReleaseBuilds=true\n';
     fs.writeFileSync(gradlePropertiesPath, gradleProps, 'utf8');
@@ -150,6 +157,11 @@ try {
         ndk {
             abiFilters "arm64-v8a"
         }
+        externalNativeBuild {
+            cmake {
+                abiFilters "arm64-v8a"
+            }
+        }
     `;
     
     buildGradle = buildGradle.replace('defaultConfig {', 'defaultConfig {\n' + ndkBlock);
@@ -158,7 +170,7 @@ try {
 
   if (buildType === 'apk' || buildType === 'all') {
     console.log('🚀 Compiling APK (assembleRelease)...');
-    execSync('.\\gradlew.bat assembleRelease', {
+    execSync('.\\gradlew.bat assembleRelease -PreactNativeArchitectures=arm64-v8a -Pandroid.enableMinifyInReleaseBuilds=true -Pandroid.enableShrinkResourcesInReleaseBuilds=true', {
       cwd: buildDir,
       stdio: 'inherit'
     });
@@ -181,7 +193,7 @@ try {
 
   if (buildType === 'aab' || buildType === 'all') {
     console.log('🚀 Compiling AAB Bundle (bundleRelease)...');
-    execSync('.\\gradlew.bat bundleRelease', {
+    execSync('.\\gradlew.bat bundleRelease -Pandroid.enableMinifyInReleaseBuilds=true -Pandroid.enableShrinkResourcesInReleaseBuilds=true', {
       cwd: buildDir,
       stdio: 'inherit'
     });
