@@ -27,9 +27,7 @@ const PORT = process.env.PORT || 5000;
 // CORS: allow all origins in dev; configure tighter in production
 app.use(
   cors({
-    origin: process.env.NODE_ENV === "production"
-      ? process.env.CORS_ORIGIN || "*"
-      : true,
+    origin: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "x-user-id"],
     credentials: true,
