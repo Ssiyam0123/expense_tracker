@@ -51,10 +51,13 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "build:local-apk": "node ./scripts/build-local.js apk",
+    "build:local-aab": "node ./scripts/build-local.js aab",
+    "build:local": "node ./scripts/build-local.js all"
   },
   "private": true
 }
