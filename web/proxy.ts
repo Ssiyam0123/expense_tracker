@@ -19,10 +19,10 @@ export default async function proxy(req: NextRequest) {
   }
 
   // Define public routes
-  const publicPaths = ["/login", "/signup", "/api/auth", "/api/health", "/api/ready", "/api/v1/signup"];
+  const publicPaths = ["/login", "/signup", "/api/auth", "/api/health", "/api/ready", "/api/v1/signup", "/privacy"];
   let response: NextResponse;
 
-  if (publicPaths.some((p) => path.startsWith(p))) {
+  if (path === "/" || publicPaths.some((p) => path.startsWith(p))) {
     response = NextResponse.next();
   } else if (path.startsWith("/_next") || path.startsWith("/favicon") || path === "/logo.png" || path === "/icon.png") {
     response = NextResponse.next();
