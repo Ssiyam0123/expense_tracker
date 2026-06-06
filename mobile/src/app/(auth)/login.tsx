@@ -8,10 +8,14 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { useAuthStore } from "@/stores/auth";
 import { apiClient, getAuthBaseUrl } from "@/lib/api";
+import * as WebBrowser from "expo-web-browser";
+
+WebBrowser.maybeCompleteAuthSession();
 
 /**
  * Build a form-urlencoded body string from an object.
@@ -62,6 +66,26 @@ export default function LoginScreen() {
     setError(null);
 
     try {
+      // Step 0: Try Direct JWT Auth (Express backend)
+      let token: string | null = null;
+      try {
+        const directLoginRes = await apiClient.post(`${getAuthBaseUrl()}/login`, {
+          email,
+          password,
+        });
+        if (directLoginRes.data?.data?.token) {
+          token = directLoginRes.data.data.token;
+        }
+      } catch (err) {
+        // Fallback to NextAuth flow if direct login fails
+      }
+
+      if (token) {
+        await signIn(token, serverUrl);
+        router.replace("/" as any);
+        return;
+      }
+
       // Step 1: Get CSRF token from NextAuth
       const csrfRes = await apiClient.get(`${getAuthBaseUrl()}/csrf`);
       const csrfToken = csrfRes.data?.csrfToken;
@@ -106,7 +130,7 @@ export default function LoginScreen() {
             })
           );
           await signIn(mobileToken, serverUrl);
-          router.replace("/index" as any);
+          router.replace("/" as any);
           return;
         }
       }
@@ -116,6 +140,35 @@ export default function LoginScreen() {
       setError(
         "Unable to connect to server. Please verify the server URL and try again."
       );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const authUrl = `${getAuthBaseUrl()}/signin/google`;
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, "exp://");
+      
+      // Fetch session after browser completes authentication
+      const sessionRes = await apiClient.get(`${getAuthBaseUrl()}/session`);
+      if (sessionRes.data?.user?.id) {
+        const mobileToken = toBase64(
+          JSON.stringify({
+            userId: sessionRes.data.user.id,
+            email: sessionRes.data.user.email,
+            exp: Date.now() + 30 * 24 * 60 * 60 * 1000,
+          })
+        );
+        await signIn(mobileToken, serverUrl);
+        router.replace("/" as any);
+      } else {
+        setError("Google authentication was not completed.");
+      }
+    } catch (err) {
+      setError("Failed to sign in with Google.");
     } finally {
       setIsLoading(false);
     }
@@ -136,7 +189,11 @@ export default function LoginScreen() {
 
         <View className="gap-10">
           {/* Header */}
-          <View className="gap-2">
+          <View className="gap-2 items-center">
+            <Image
+              source={require("../../../assets/images/logo.png")}
+              style={{ width: 80, height: 80, marginBottom: 8, borderRadius: 16 }}
+            />
             <Text className="text-white text-4xl font-bold text-center">
               Expense Tracker
             </Text>
@@ -193,6 +250,17 @@ export default function LoginScreen() {
                   Sign In
                 </Text>
               )}
+            </TouchableOpacity>
+
+            {/* Google Login Button */}
+            <TouchableOpacity
+              className="bg-zinc-900 border border-white/[0.08] rounded-xl py-4 items-center flex-row justify-center gap-2 mt-1"
+              onPress={handleGoogleLogin}
+              disabled={isLoading}
+            >
+              <Text className="text-white text-base font-semibold">
+                🌐 Continue with Google
+              </Text>
             </TouchableOpacity>
           </View>
 

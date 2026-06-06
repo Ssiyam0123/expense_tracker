@@ -1,60 +1,51 @@
 import { auth } from "@/lib/auth";
-import { getBudgets } from "@/services/budget";
-import { getCategories } from "@/services/category";
-import { getDashboardSummary } from "@/services/dashboard";
+import { serverApi } from "@/lib/server-api";
 import { BudgetManager } from "@/components/BudgetManager";
 
 export default async function BudgetsPage() {
   const session = await auth();
-  const userId = session?.user?.id;
-  if (!userId) return null;
+  if (!session?.user?.id) return null;
 
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
 
-  const [budgets, categories, summary] = await Promise.all([
-    getBudgets(userId, month, year),
-    getCategories(userId),
-    getDashboardSummary(userId, month, year),
+  const [budgetsRes, categoriesRes, summaryRes] = await Promise.all([
+    serverApi.get("/api/v1/budgets", { month, year }),
+    serverApi.get("/api/v1/categories"),
+    serverApi.get("/api/v1/dashboard/summary", { month, year }),
   ]);
 
-  const serializedBudgets = budgets.map((b) => ({
-    _id: (b._id as object).toString(),
-    categoryId:
-      typeof b.categoryId === "object" && b.categoryId !== null
-        ? {
-            _id: ((b.categoryId as Record<string, unknown>)._id as object).toString(),
-            name: (b.categoryId as Record<string, string>).name,
-            icon: (b.categoryId as Record<string, string>).icon,
-            color: (b.categoryId as Record<string, string>).color,
-          }
-        : null,
-    amountMinor: b.amountMinor,
-    currency: b.currency,
-    period: b.period,
-    month: b.month,
-    year: b.year,
-    alertThreshold: b.alertThreshold,
-  }));
+  if (!budgetsRes.data || !categoriesRes.data || !summaryRes.data) {
+    return <div className="p-8 text-center text-muted">Failed to load budgets.</div>;
+  }
 
-  const serializedCategories = categories.map((c) => ({
-    _id: (c._id as object).toString(),
-    name: c.name,
-    icon: c.icon,
-    color: c.color,
-    type: c.type,
-  }));
+  // Serialize API response to plain objects
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const budgets: any[] = JSON.parse(JSON.stringify(budgetsRes.data));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const categories: any[] = JSON.parse(JSON.stringify(categoriesRes.data));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const summary: any = JSON.parse(JSON.stringify(summaryRes.data));
+
+  const serializedCategories = categories
+    .filter((c: { type: string }) => c.type === "expense")
+    .map((c: { _id: string; name: string; icon?: string; color?: string }) => ({
+      _id: c._id,
+      name: c.name,
+      icon: c.icon,
+      color: c.color,
+    }));
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Budgets</h1>
       <BudgetManager
-        budgets={serializedBudgets}
-        categories={serializedCategories.filter((c) => c.type === "expense")}
+        budgets={budgets}
+        categories={serializedCategories}
         currentMonth={month}
         currentYear={year}
-        budgetStatus={JSON.parse(JSON.stringify(summary.budgetStatus))}
+        budgetStatus={summary.budgetStatus}
       />
     </div>
   );

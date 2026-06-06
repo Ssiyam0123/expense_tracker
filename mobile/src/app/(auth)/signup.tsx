@@ -8,6 +8,7 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { useAuthStore } from "@/stores/auth";
@@ -53,14 +54,37 @@ export default function SignupScreen() {
       return;
     }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
       return;
     }
 
     setIsLoading(true);
 
     try {
+      let signupData = null;
+
+      // Step 0: Try Direct Express Sign Up
+      try {
+        const directSignupRes = await apiClient.post(`${getAuthBaseUrl()}/signup`, {
+          name,
+          email,
+          password,
+        });
+        if (directSignupRes.data?.data) {
+          signupData = directSignupRes.data.data;
+        }
+      } catch (err) {
+        // Fallback to Next.js API
+      }
+
+      if (signupData && signupData.token) {
+        // Direct auto-login for Express
+        await signIn(signupData.token, serverUrl);
+        router.replace("/" as any);
+        return;
+      }
+
       // Signup via the API v1 signup route (JSON)
       const signupRes = await apiClient.post("/signup", { name, email, password });
 
@@ -104,7 +128,7 @@ export default function SignupScreen() {
           })
         );
         await signIn(mobileToken, serverUrl);
-        router.replace("/index" as any);
+        router.replace("/" as any);
         return;
       }
 
@@ -134,7 +158,11 @@ export default function SignupScreen() {
 
         <View className="gap-8">
           {/* Header */}
-          <View className="gap-2">
+          <View className="gap-2 items-center">
+            <Image
+              source={require("../../../assets/images/logo.png")}
+              style={{ width: 80, height: 80, marginBottom: 8, borderRadius: 16 }}
+            />
             <Text className="text-white text-3xl font-bold text-center">
               Create Account
             </Text>
@@ -182,7 +210,7 @@ export default function SignupScreen() {
                 secureTextEntry
               />
               <Text className="text-zinc-600 text-xs">
-                Min 8 characters with uppercase, lowercase & number
+                Min 6 characters
               </Text>
             </View>
 

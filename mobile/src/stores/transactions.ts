@@ -57,6 +57,7 @@ interface TransactionState {
       paymentMethodId: string;
       note: string;
       tags: string[];
+      timestamp: string;
     }>
   ) => Promise<void>;
   deleteTransaction: (localId: string) => Promise<void>;
@@ -192,13 +193,37 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
           [data.amountMinor, localId]
         );
       }
+      if (data.type !== undefined) {
+        await db.runAsync(
+          `UPDATE transactions SET type = ?, sync_status = 'pending_update' WHERE id = ?`,
+          [data.type, localId]
+        );
+      }
+      if (data.categoryId !== undefined) {
+        await db.runAsync(
+          `UPDATE transactions SET category_id = ?, sync_status = 'pending_update' WHERE id = ?`,
+          [data.categoryId, localId]
+        );
+      }
+      if (data.paymentMethodId !== undefined) {
+        await db.runAsync(
+          `UPDATE transactions SET payment_method_id = ?, sync_status = 'pending_update' WHERE id = ?`,
+          [data.paymentMethodId, localId]
+        );
+      }
+      if (data.timestamp !== undefined) {
+        await db.runAsync(
+          `UPDATE transactions SET timestamp = ?, sync_status = 'pending_update' WHERE id = ?`,
+          [data.timestamp, localId]
+        );
+      }
       if (data.note !== undefined) {
         await db.runAsync(
           `UPDATE transactions SET note = ?, sync_status = 'pending_update' WHERE id = ?`,
           [data.note, localId]
         );
       }
-    } catch {
+    } catch (err) {
       // continue
     }
 

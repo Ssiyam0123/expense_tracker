@@ -21,7 +21,12 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="rounded-2xl border border-border bg-card p-8 shadow-2xl">
-          <div className="mb-8 text-center">
+          <div className="mb-8 text-center flex flex-col items-center">
+            <img
+              src="/logo.png"
+              alt="Expense Tracker Logo"
+              className="w-16 h-16 mb-4 rounded-xl shadow-md"
+            />
             <h1 className="mb-1 text-2xl font-bold tracking-tight">
               Create Account
             </h1>

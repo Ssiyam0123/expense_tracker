@@ -43,10 +43,10 @@ interface Summary {
 
 interface Props {
   summary: Summary;
-  transactions: TransactionRecord[];
+  transactions?: TransactionRecord[];
 }
 
-export function DashboardSummary({ summary, transactions }: Props) {
+export function DashboardSummary({ summary, transactions = [] }: Props) {
   const { totalIncome, totalExpense, balance, categoryBreakdown, budgetStatus } =
     summary;
 
@@ -93,7 +93,8 @@ export function DashboardSummary({ summary, transactions }: Props) {
     }
 
     // Accumulate daily totals
-    transactions.forEach((tx) => {
+    const safeTransactions = Array.isArray(transactions) ? transactions : [];
+    safeTransactions.forEach((tx) => {
       const date = new Date(tx.timestamp);
       if (date.getMonth() + 1 === currentMonth && date.getFullYear() === currentYear) {
         const day = date.getDate();

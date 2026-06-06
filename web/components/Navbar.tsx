@@ -24,8 +24,9 @@ export function Navbar({ userImage, userName, signOutAction }: NavbarProps) {
     <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
         {/* Brand */}
-        <Link href="/dashboard" className="text-sm font-semibold tracking-tight text-white hover:opacity-85 transition-opacity">
-          ExpenseTracker
+        <Link href="/dashboard" className="flex items-center gap-2 text-sm font-semibold tracking-tight text-white hover:opacity-85 transition-opacity">
+          <img src="/logo.png" alt="ExpenseTracker Logo" className="w-6 h-6 rounded-md" />
+          <span>ExpenseTracker</span>
         </Link>
 
         {/* Desktop Nav */}

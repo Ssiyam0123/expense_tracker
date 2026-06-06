@@ -2,8 +2,10 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api-client";
 import { toMinorUnits } from "@/lib/utils";
 import { saveOfflineTransaction } from "@/lib/offline-sync";
+import { showToast } from "@/lib/toast";
 
 interface Category {
   _id: string;
@@ -84,19 +86,18 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
     }
 
     try {
-      const res = await fetch(`/api/v1/categories?id=${catId}`, {
-        method: "DELETE",
-      });
+      const res = await api.delete("/api/v1/categories", { id: catId });
 
-      const body = await res.json();
-      if (res.ok && body.data) {
+      if (res.data) {
         setDeletedCategoryIds((prev) => [...prev, catId]);
         if (categoryId === catId) {
           setCategoryId(""); // Reset active category if deleted
         }
+        showToast("Category deleted successfully!", "success");
         router.refresh();
       } else {
-        setNewCatError(body.error?.message || "Failed to delete category");
+        setNewCatError(res.error?.message || "Failed to delete category");
+        showToast(res.error?.message || "Failed to delete category", "error");
       }
     } catch (err) {
       setNewCatError("Failed to connect to the server");
@@ -153,24 +154,22 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
         const numAmount = parseFloat(amount);
         if (isNaN(numAmount) || numAmount <= 0) return;
 
-        const res = await fetch("/api/v1/transactions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amountMinor: toMinorUnits(numAmount),
+      const res = await api.post("/api/v1/transactions", {
+        amountMinor: toMinorUnits(numAmount),
             currency: "BDT",
             type,
             categoryId: activeCategory,
             paymentMethodId: activePayment,
             note: note || undefined,
             timestamp,
-          }),
-        });
+      });
 
-        if (res.ok) {
+      if (res.data) {
           resetForm();
+          showToast("Transaction logged successfully!", "success");
         } else {
           setStatus("error");
+          showToast("Failed to log transaction", "error");
         }
       } catch {
         // Fall back to offline storage
@@ -187,6 +186,7 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
             });
             resetForm();
             setStatus("success");
+            showToast("Transaction saved offline!", "info");
             return;
           }
         } catch {
@@ -208,27 +208,24 @@ export function QuickLogForm({ categories, paymentMethods }: Props) {
     setNewCatError("");
 
     try {
-      const res = await fetch("/api/v1/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newCatName.trim(),
+      const res = await api.post("/api/v1/categories", {
+        name: newCatName.trim(),
           icon: newCatIcon,
           color: newCatColor,
           type,
-        }),
       });
 
-      const body = await res.json();
-      if (res.ok && body.data) {
-        const newCat = body.data;
+      if (res.data) {
+        const newCat = res.data as Category;
         setNewLocalCategories((prev) => [...prev, newCat]);
         setCategoryId(newCat._id);
         setNewCatName("");
         setShowNewCategoryModal(false);
+        showToast("Category created successfully!", "success");
         router.refresh();
       } else {
-        setNewCatError(body.error?.message || "Failed to create category");
+        setNewCatError(res.error?.message || "Failed to create category");
+        showToast(res.error?.message || "Failed to create category", "error");
       }
     } catch (err) {
       setNewCatError("Failed to connect to the server");

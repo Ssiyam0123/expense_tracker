@@ -1,48 +1,54 @@
 import { auth } from "@/lib/auth";
-import { getDashboardSummary } from "@/services/dashboard";
-import { getCategories } from "@/services/category";
-import { getPaymentMethods } from "@/services/payment-method";
-import { listTransactions } from "@/services/transaction";
-import { fromMinorUnits } from "@/lib/utils";
+import { serverApi } from "@/lib/server-api";
 import { QuickLogForm } from "@/components/QuickLogForm";
 import { DashboardSummary } from "@/components/DashboardSummary";
 
 export default async function DashboardPage() {
   const session = await auth();
-  const userId = session?.user?.id;
-  if (!userId) return null;
+  if (!session?.user?.id) return null;
 
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
 
-  const [summary, categories, paymentMethods, txResult] = await Promise.all([
-    getDashboardSummary(userId, month, year),
-    getCategories(userId),
-    getPaymentMethods(userId),
-    // line 23
-    listTransactions(userId, {
-      limit: 100,
-      page: 1,
-      sortBy: "createdAt", // Must be "createdAt" | "amountMinor" | "timestamp"
-      sortOrder: "desc", // Must be "asc" | "desc"
-    }),
+  const [summaryRes, categoriesRes, paymentMethodsRes, txResultRes] = await Promise.all([
+    serverApi.get("/api/v1/dashboard/summary", { month, year }),
+    serverApi.get("/api/v1/categories"),
+    serverApi.get("/api/v1/payment-methods"),
+    serverApi.get("/api/v1/transactions", { limit: 100, page: 1, sortBy: "timestamp", sortOrder: "desc" }),
   ]);
 
-  // Serialize Mongoose objects to plain objects
-  const serializedCategories = categories.map((c) => ({
-    _id: (c._id as object).toString(),
-    name: c.name,
-    icon: c.icon,
-    color: c.color,
-    type: c.type,
-  }));
+  if (!summaryRes.data || !categoriesRes.data || !paymentMethodsRes.data || !txResultRes.data) {
+    return <div className="p-8 text-center text-muted">Failed to load dashboard data.</div>;
+  }
 
-  const serializedPaymentMethods = paymentMethods.map((p) => ({
-    _id: (p._id as object).toString(),
-    name: p.name,
-    icon: p.icon,
-  }));
+  // Serialize API response to plain objects
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const summary: any = JSON.parse(JSON.stringify(summaryRes.data));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const categories: any[] = JSON.parse(JSON.stringify(categoriesRes.data));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const paymentMethods: any[] = JSON.parse(JSON.stringify(paymentMethodsRes.data));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const txResult: any = JSON.parse(JSON.stringify(txResultRes.data));
+
+  const serializedCategories = categories.map(
+    (c: { _id: string; name: string; icon?: string; color?: string; type: string }) => ({
+      _id: c._id,
+      name: c.name,
+      icon: c.icon,
+      color: c.color,
+      type: c.type as "income" | "expense",
+    })
+  );
+
+  const serializedPaymentMethods = paymentMethods.map(
+    (p: { _id: string; name: string; icon?: string }) => ({
+      _id: p._id,
+      name: p.name,
+      icon: p.icon,
+    })
+  );
 
   return (
     <div className="space-y-6">
@@ -57,8 +63,8 @@ export default async function DashboardPage() {
       </div>
 
       <DashboardSummary
-        summary={JSON.parse(JSON.stringify(summary))}
-        transactions={JSON.parse(JSON.stringify(txResult.transactions))}
+        summary={summary}
+        transactions={Array.isArray(txResult) ? txResult : (txResult?.transactions || [])}
       />
 
       <QuickLogForm

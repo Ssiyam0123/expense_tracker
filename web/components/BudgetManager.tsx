@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api-client";
 import { fromMinorUnits, toMinorUnits } from "@/lib/utils";
 
 interface Category {
@@ -65,19 +66,15 @@ export function BudgetManager({
       const numAmount = parseFloat(amount);
       if (isNaN(numAmount) || numAmount <= 0) return;
 
-      const res = await fetch("/api/v1/budgets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          categoryId,
-          amountMinor: toMinorUnits(numAmount),
+      const res = await api.post("/api/v1/budgets", {
+        categoryId,
+        amountMinor: toMinorUnits(numAmount),
           month: currentMonth,
           year: currentYear,
           alertThreshold,
-        }),
       });
 
-      if (res.ok) {
+      if (res.data) {
         setAmount("");
         setCategoryId("");
         setStatus("success");
@@ -93,7 +90,7 @@ export function BudgetManager({
   };
 
   const handleDelete = async (id: string) => {
-    await fetch(`/api/v1/budgets?id=${id}`, { method: "DELETE" });
+    await api.delete("/api/v1/budgets", { id });
     router.refresh();
   };
 

@@ -50,7 +50,7 @@ export default function TransactionsScreen() {
       <View className="absolute top-[-40] left-[-30] w-[150] h-[150] bg-emerald-500 rounded-full opacity-8" />
 
       <ScrollView
-        className="flex-1 px-5 pt-14"
+        className="flex-1 px-5 pt-6"
         refreshControl={
           <RefreshControl
             refreshing={isLoading}

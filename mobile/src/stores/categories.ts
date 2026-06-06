@@ -22,6 +22,12 @@ interface CategoryState {
     color?: string;
     type?: "income" | "expense";
   }) => Promise<void>;
+  updateCategory: (id: string, data: {
+    name?: string;
+    icon?: string;
+    color?: string;
+    type?: "income" | "expense";
+  }) => Promise<void>;
   removeCategory: (id: string) => Promise<void>;
 }
 
@@ -58,6 +64,24 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
       }
     } catch (err) {
       set({ error: (err as Error).message || "Failed to add category" });
+    }
+  },
+
+  updateCategory: async (id, data) => {
+    set({ error: null });
+    try {
+      const res = await apiPatch<Category>("/categories", { id, ...data });
+      if (res.data) {
+        set({
+          categories: get().categories.map((c) =>
+            c._id === id ? { ...c, ...res.data } : c
+          ),
+        });
+      } else if (res.error) {
+        set({ error: res.error.message });
+      }
+    } catch (err) {
+      set({ error: (err as Error).message || "Failed to update category" });
     }
   },
 

@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { api, API_URL } from "@/lib/api-client";
 import { fromMinorUnits, toMinorUnits } from "@/lib/utils";
+import { showToast } from "@/lib/toast";
 
 interface Category {
   _id: string;
@@ -44,7 +46,12 @@ interface Props {
   pagination: Pagination;
 }
 
-export function TransactionList({ transactions, categories, paymentMethods, pagination }: Props) {
+export function TransactionList({
+  transactions = [],
+  categories = [],
+  paymentMethods = [],
+  pagination = { page: 1, limit: 20, total: 0, totalPages: 1 },
+}: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -71,10 +78,14 @@ export function TransactionList({ transactions, categories, paymentMethods, pagi
     setEditNote(tx.note || "");
     
     const d = new Date(tx.timestamp);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    setEditDate(`${year}-${month}-${day}`);
+    if (!isNaN(d.getTime())) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      setEditDate(`${year}-${month}-${day}`);
+    } else {
+      setEditDate("");
+    }
     setEditError("");
   };
 
@@ -98,25 +109,22 @@ export function TransactionList({ transactions, categories, paymentMethods, pagi
       const timeStr = `${String(origTime.getHours()).padStart(2, '0')}:${String(origTime.getMinutes()).padStart(2, '0')}:${String(origTime.getSeconds()).padStart(2, '0')}`;
       const newTimestamp = new Date(`${editDate}T${timeStr}`).toISOString();
 
-      const res = await fetch(`/api/v1/transactions/${editingTx._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amountMinor: toMinorUnits(numAmount),
+      const res = await api.patch(`/api/v1/transactions/${editingTx._id}`, {
+        amountMinor: toMinorUnits(numAmount),
           type: editType,
           categoryId: editCategoryId,
           paymentMethodId: editPaymentMethodId,
           note: editNote || null,
           timestamp: newTimestamp,
-        }),
       });
 
-      const body = await res.json();
-      if (res.ok && body.data) {
+      if (res.data) {
         setEditingTx(null);
+        showToast("Transaction updated successfully!", "success");
         router.refresh();
       } else {
-        setEditError(body.error?.message || "Failed to update transaction");
+        setEditError(res.error?.message || "Failed to update transaction");
+        showToast(res.error?.message || "Failed to update transaction", "error");
       }
     } catch (err) {
       setEditError("Failed to connect to the server");
@@ -147,19 +155,36 @@ export function TransactionList({ transactions, categories, paymentMethods, pagi
       return;
     }
     try {
-      const res = await fetch(`/api/v1/transactions/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
+      const res = await api.delete(`/api/v1/transactions/${id}`);
+      if (res.data) {
+        showToast("Transaction deleted successfully!", "success");
         router.refresh();
       } else {
         alert("Failed to delete transaction");
+        showToast("Failed to delete transaction", "error");
       }
     } catch (err) {
       console.error(err);
       alert("Failed to delete transaction");
+      showToast("Failed to connect to the server", "error");
     }
   };
+
+  const formatDateSafe = (timestamp: string) => {
+    try {
+      const d = new Date(timestamp);
+      if (isNaN(d.getTime())) return "Unknown Date";
+      return d.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return "Unknown Date";
+    }
+  };
+
+  const safeTransactions = Array.isArray(transactions) ? transactions : [];
 
   return (
     <div>
@@ -189,7 +214,7 @@ export function TransactionList({ transactions, categories, paymentMethods, pagi
           </select>
         </div>
         <a
-          href="/api/v1/export.csv"
+          href={`${API_URL}/api/v1/export.csv`}
           className="w-full sm:w-auto text-center flex items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-4 py-2.5 text-sm text-slate-300 font-semibold transition-all hover:bg-white/5 hover:border-white/[0.15] hover:text-white"
         >
           📤 Export CSV
@@ -197,14 +222,14 @@ export function TransactionList({ transactions, categories, paymentMethods, pagi
       </div>
 
       {/* Transaction list */}
-      {transactions.length === 0 ? (
+      {safeTransactions.length === 0 ? (
         <div className="p-12 text-center text-muted rounded-2xl border border-white/[0.08] bg-slate-900/40 backdrop-blur-md">
           <p className="text-lg">No transactions found</p>
           <p className="mt-1 text-sm">Add your first transaction from the dashboard</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {transactions.map((tx) => (
+          {safeTransactions.map((tx) => (
             <div
               key={tx._id}
               className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 transition-all duration-300 hover:bg-white/[0.04] hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/20 flex flex-col gap-3"
@@ -250,11 +275,7 @@ export function TransactionList({ transactions, categories, paymentMethods, pagi
                   </span>
                   
                   <span className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.05] rounded-lg px-2 py-1 font-mono text-[11px]">
-                    📅 {new Date(tx.timestamp).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    📅 {formatDateSafe(tx.timestamp)}
                   </span>
 
                   {tx.note && (
@@ -302,7 +323,7 @@ export function TransactionList({ transactions, categories, paymentMethods, pagi
       )}
 
       {/* Pagination */}
-      {pagination.totalPages > 1 && (
+      {pagination && pagination.totalPages > 1 && (
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400 border-t border-white/[0.06] pt-4">
           <p className="text-xs sm:text-sm">
             Showing {(pagination.page - 1) * pagination.limit + 1}–

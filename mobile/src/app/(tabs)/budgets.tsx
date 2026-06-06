@@ -11,12 +11,14 @@ import {
 } from "react-native";
 import { useBudgetStore, Budget } from "@/stores/budgets";
 import { useCategoryStore } from "@/stores/categories";
-import { formatCurrency, getCurrentMonthYear } from "@/lib/utils";
+import { useDashboardStore } from "@/stores/dashboard";
+import { formatCurrency, getCurrentMonthYear, fromMinorUnits } from "@/lib/utils";
 
 export default function BudgetsScreen() {
   const { budgets, isLoading, error, fetchBudgets, addBudget, updateBudget, removeBudget } =
     useBudgetStore();
   const { categories, fetchCategories } = useCategoryStore();
+  const { summary, fetchSummary } = useDashboardStore();
 
   const { month, year } = getCurrentMonthYear();
 
@@ -28,11 +30,13 @@ export default function BudgetsScreen() {
   useEffect(() => {
     fetchBudgets(month, year);
     fetchCategories();
+    fetchSummary(month, year);
   }, []);
 
   const handleRefresh = () => {
     fetchBudgets(month, year);
     fetchCategories();
+    fetchSummary(month, year);
   };
 
   const handleAddBudget = async () => {
@@ -54,15 +58,37 @@ export default function BudgetsScreen() {
   const expenseCategories = categories.filter((c) => c.type === "expense");
 
   const getCategoryName = (budget: Budget): string => {
-    if (typeof budget.categoryId === "object") {
-      return budget.categoryId.name || "Unknown";
+    let id = "";
+    if (typeof budget.categoryId === "object" && budget.categoryId !== null) {
+      if (budget.categoryId.name) {
+        return budget.categoryId.name;
+      }
+      id = budget.categoryId._id;
+    } else if (typeof budget.categoryId === "string") {
+      id = budget.categoryId;
     }
-    return budget.categoryId;
+
+    if (id) {
+      const cat = categories.find((c) => c._id === id);
+      if (cat) return cat.name;
+    }
+    return "Unknown";
   };
 
   const getCategoryIcon = (budget: Budget): string => {
-    if (typeof budget.categoryId === "object") {
-      return budget.categoryId.icon || "📌";
+    let id = "";
+    if (typeof budget.categoryId === "object" && budget.categoryId !== null) {
+      if (budget.categoryId.icon) {
+        return budget.categoryId.icon;
+      }
+      id = budget.categoryId._id;
+    } else if (typeof budget.categoryId === "string") {
+      id = budget.categoryId;
+    }
+
+    if (id) {
+      const cat = categories.find((c) => c._id === id);
+      if (cat) return cat.icon || "📌";
     }
     return "📌";
   };
@@ -73,7 +99,7 @@ export default function BudgetsScreen() {
       <View className="absolute bottom-[-50] right-[-40] w-[200] h-[200] bg-emerald-500 rounded-full opacity-8" />
 
       <ScrollView
-        className="flex-1 px-5 pt-14"
+        className="flex-1 px-5 pt-6"
         refreshControl={
           <RefreshControl
             refreshing={isLoading}
@@ -117,41 +143,83 @@ export default function BudgetsScreen() {
           </View>
         ) : (
           <View className="gap-3">
-            {budgets.map((budget) => (
-              <View
-                key={budget._id}
-                className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 gap-3"
-              >
-                <View className="flex-row justify-between items-center">
-                  <View className="flex-row items-center gap-2">
-                    <Text className="text-lg">{getCategoryIcon(budget)}</Text>
-                    <Text className="text-white text-sm font-medium">
-                      {getCategoryName(budget)}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => removeBudget(budget._id)}
-                    className="bg-red-500/10 rounded-lg px-3 py-1"
-                  >
-                    <Text className="text-red-400 text-xs">Remove</Text>
-                  </TouchableOpacity>
-                </View>
+            {budgets.map((budget) => {
+              const categoryIdStr =
+                typeof budget.categoryId === "object"
+                  ? budget.categoryId._id
+                  : budget.categoryId;
+              
+              // Find matching computed status from the dashboard store
+              const status = summary?.budgetStatus?.find(
+                (s) => s.categoryId === categoryIdStr
+              );
 
-                <View className="gap-1.5">
-                  <View className="flex-row justify-between">
-                    <Text className="text-zinc-500 text-xs">
-                      Limit: {formatCurrency(budget.amountMinor)} / mo
-                    </Text>
-                    <Text className="text-zinc-500 text-xs">
-                      Alert at {budget.alertThreshold || 80}%
-                    </Text>
+              const spent = status ? status.spentAmount : 0;
+              const limit = budget.amountMinor;
+              const pct = limit > 0 ? Math.round((spent / limit) * 100) : 0;
+              const isOver = spent > limit;
+              const isNear = !isOver && limit > 0 && (spent / limit) * 100 >= (budget.alertThreshold || 80);
+
+              return (
+                <View
+                  key={budget._id}
+                  className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 gap-3"
+                >
+                  <View className="flex-row justify-between items-center">
+                    <View className="flex-row items-center gap-2">
+                      <Text className="text-lg">{getCategoryIcon(budget)}</Text>
+                      <Text className="text-white text-sm font-semibold tracking-tight">
+                        {getCategoryName(budget)}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => removeBudget(budget._id)}
+                      className="bg-red-500/10 rounded-lg px-2.5 py-1"
+                    >
+                      <Text className="text-red-400 text-[10px] font-bold uppercase tracking-wider">Remove</Text>
+                    </TouchableOpacity>
                   </View>
-                  <Text className="text-zinc-600 text-xs">
-                    Add transactions to see budget progress
-                  </Text>
+
+                  <View className="gap-1.5">
+                    {/* Progress Bar */}
+                    <View className="h-1.5 overflow-hidden rounded-full bg-white/[0.06] mb-1">
+                      <View
+                        className={`h-full rounded-full ${
+                          isOver
+                            ? "bg-red-500"
+                            : isNear
+                              ? "bg-yellow-500"
+                              : "bg-emerald-500"
+                        }`}
+                        style={{ width: `${Math.min(pct, 100)}%` }}
+                      />
+                    </View>
+
+                    <View className="flex-row justify-between font-mono text-[10px] text-zinc-500">
+                      <Text className="text-zinc-500">
+                        ৳{fromMinorUnits(spent).toLocaleString()} spent
+                      </Text>
+                      <Text className="text-zinc-500">
+                        Limit ৳{fromMinorUnits(limit).toLocaleString()}
+                      </Text>
+                    </View>
+
+                    <View className="flex-row justify-between items-center mt-1">
+                      <Text className="text-zinc-600 text-[9px] font-mono">
+                        Alert at {budget.alertThreshold || 80}% limit
+                      </Text>
+                      {isOver ? (
+                        <Text className="text-red-400 text-[9px] font-semibold">Over budget!</Text>
+                      ) : isNear ? (
+                        <Text className="text-yellow-400 text-[9px] font-semibold">Near limit</Text>
+                      ) : (
+                        <Text className="text-emerald-400 text-[9px] font-semibold">{pct}% used</Text>
+                      )}
+                    </View>
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
       </ScrollView>

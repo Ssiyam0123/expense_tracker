@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { signOut } from "@/lib/auth";
 import { Navbar } from "@/components/Navbar";
+import Script from "next/script";
 
 export default async function DashboardLayout({
   children,
@@ -20,6 +21,14 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Inject user ID for client-side API client */}
+      <Script
+        id="user-id-setup"
+        dangerouslySetInnerHTML={{
+          __html: `window.__USER_ID__ = "${session.user.id}";`,
+        }}
+      />
+
       <Navbar
         userImage={session.user.image}
         userName={session.user.name}
