@@ -18,8 +18,14 @@ export default async function LoginPage({
   const error = params.error;
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
+        <Link
+          href="/"
+          className="mb-4 inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+        >
+          ← Back to Home
+        </Link>
         <div className="rounded-2xl border border-border bg-card p-8 shadow-2xl">
           <div className="mb-8 text-center flex flex-col items-center">
             <img
