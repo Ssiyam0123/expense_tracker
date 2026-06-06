@@ -169,4 +169,131 @@ router.get("/user-by-email", async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/auth/google
+router.get("/google", (req: Request, res: Response) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    logger.error("GOOGLE_CLIENT_ID environment variable is missing");
+    res.status(500).send("Google OAuth configuration is missing on server");
+    return;
+  }
+  // Determine redirect URI
+  const host = req.get("host") || "localhost:5000";
+  const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+  const redirectUri = `${protocol}://${host}/api/auth/google/callback`;
+  
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` + 
+    `client_id=${encodeURIComponent(clientId)}` +
+    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+    `&response_type=code` +
+    `&scope=openid%20profile%20email` +
+    `&prompt=consent`;
+    
+  res.redirect(authUrl);
+});
+
+// GET /api/auth/google/callback
+router.get("/google/callback", async (req: Request, res: Response) => {
+  try {
+    const code = req.query.code as string;
+    if (!code) {
+      res.status(400).send("Authorization code missing");
+      return;
+    }
+
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    if (!clientId || !clientSecret) {
+      logger.error("GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is missing");
+      res.status(500).send("Google OAuth configuration is missing on server");
+      return;
+    }
+    const host = req.get("host") || "localhost:5000";
+    const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+    const redirectUri = `${protocol}://${host}/api/auth/google/callback`;
+
+    // 1. Exchange code for tokens
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+      }).toString(),
+    });
+
+    if (!tokenRes.ok) {
+      const errorText = await tokenRes.text();
+      logger.error({ errorText }, "Google token exchange failed");
+      res.status(500).send("Token exchange failed");
+      return;
+    }
+
+    const tokens = (await tokenRes.json()) as { access_token: string };
+
+    // 2. Retrieve user info
+    const userRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${tokens.access_token}` },
+    });
+
+    if (!userRes.ok) {
+      res.status(500).send("Failed to retrieve user profile");
+      return;
+    }
+
+    const profile = (await userRes.json()) as { sub: string; email: string; name: string; picture?: string };
+
+    if (!profile.email) {
+      res.status(400).send("Email not provided by Google");
+      return;
+    }
+
+    await connectDB();
+
+    // 3. Find or create user
+    let user = await User.findOne({ email: profile.email });
+    if (!user) {
+      user = await User.create({
+        email: profile.email,
+        name: profile.name,
+        image: profile.picture,
+        provider: "google",
+        providerId: profile.sub,
+      });
+      logger.info({ email: profile.email }, "New user created via direct Google OAuth");
+    } else {
+      await User.updateOne(
+        { email: profile.email },
+        {
+          $set: {
+            name: profile.name || user.name,
+            image: profile.picture || user.image,
+            provider: "google",
+            providerId: profile.sub || user.providerId,
+            updatedAt: new Date(),
+          },
+        }
+      );
+      user = await User.findOne({ email: profile.email });
+    }
+
+    if (!user) {
+      res.status(500).send("User sync failed");
+      return;
+    }
+
+    // 4. Generate JWT
+    const token = signToken({ userId: user._id.toString(), email: user.email });
+
+    // 5. Redirect back to mobile app deep link
+    res.redirect(`mobile://?token=${encodeURIComponent(token)}`);
+  } catch (err) {
+    logger.error({ err }, "Google callback error");
+    res.status(500).send("Google auth failed");
+  }
+});
+
 export default router;

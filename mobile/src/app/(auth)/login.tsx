@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { useAuthStore } from "@/stores/auth";
-import { apiClient, getAuthBaseUrl } from "@/lib/api";
+import { apiClient, getAuthBaseUrl, getApiBaseUrl } from "@/lib/api";
 import * as WebBrowser from "expo-web-browser";
 import Constants from "expo-constants";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -157,24 +157,26 @@ export default function LoginScreen() {
     try {
       const scheme = Constants.expoConfig?.scheme || "mobile";
       const redirectUrl = `${scheme}://`;
-      const authUrl = `${getAuthBaseUrl()}/signin/google`;
+      const backendRoot = getApiBaseUrl().replace("/api/v1", "");
+      const authUrl = `${backendRoot}/api/auth/google`;
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
       
-      // Fetch session after browser completes authentication
-      const sessionRes = await apiClient.get(`${getAuthBaseUrl()}/session`);
-      if (sessionRes.data?.user?.id) {
-        const mobileToken = toBase64(
-          JSON.stringify({
-            userId: sessionRes.data.user.id,
-            email: sessionRes.data.user.email,
-            exp: Date.now() + 30 * 24 * 60 * 60 * 1000,
-          })
-        );
-        await signIn(mobileToken, serverUrl);
-        router.replace("/" as any);
-      } else {
-        setError("Google authentication was not completed.");
+      if (result.type === "success" && result.url) {
+        // Parse redirect URL parameters
+        const urlStr = result.url;
+        const queryIndex = urlStr.indexOf("?");
+        if (queryIndex !== -1) {
+          const queryString = urlStr.slice(queryIndex + 1);
+          const params = new URLSearchParams(queryString);
+          const token = params.get("token");
+          if (token) {
+            await signIn(token, serverUrl);
+            router.replace("/" as any);
+            return;
+          }
+        }
       }
+      setError("Google authentication was not completed.");
     } catch (err) {
       setError("Failed to sign in with Google.");
     } finally {
