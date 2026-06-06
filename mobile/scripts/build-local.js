@@ -126,8 +126,15 @@ try {
   // 1. Enable Minify and Shrink Resources in gradle.properties
   const gradlePropertiesPath = path.join(buildDir, 'gradle.properties');
   if (fs.existsSync(gradlePropertiesPath)) {
-    console.log('⚡ Enabling Minification and Resource Shrinking in gradle.properties...');
+    console.log('⚡ Enabling Minification, Resource Shrinking, and arm64-v8a architecture targeting in gradle.properties...');
     let gradleProps = fs.readFileSync(gradlePropertiesPath, 'utf8');
+    
+    // Restrict reactNativeArchitectures to arm64-v8a only
+    gradleProps = gradleProps.replace(
+      /reactNativeArchitectures=.*/,
+      'reactNativeArchitectures=arm64-v8a'
+    );
+    
     gradleProps += '\nandroid.enableMinifyInReleaseBuilds=true\n';
     gradleProps += 'android.enableShrinkResourcesInReleaseBuilds=true\n';
     fs.writeFileSync(gradlePropertiesPath, gradleProps, 'utf8');
