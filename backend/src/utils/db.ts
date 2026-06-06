@@ -3,10 +3,12 @@ import { logger } from "./logger";
 import dns from "node:dns";
 
 // Configure DNS resolvers to handle SRV resolution issues on some local networks
-try {
-  dns.setServers(["1.1.1.1", "8.8.8.8"]);
-} catch (err) {
-  logger.warn({ err }, "Could not set custom DNS servers");
+if (!process.env.VERCEL) {
+  try {
+    dns.setServers(["1.1.1.1", "8.8.8.8"]);
+  } catch (err) {
+    logger.warn({ err }, "Could not set custom DNS servers");
+  }
 }
 
 interface MongooseCache {
