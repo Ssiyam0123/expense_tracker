@@ -11,27 +11,38 @@ export function useAuth() {
   const [isSynced, setIsSynced] = useState(false);
 
   useEffect(() => {
+    let active = true;
     async function syncToken() {
-      if (isLoaded) {
-        if (isSignedIn) {
-          try {
-            const token = await getToken();
-            if (token) {
-              await setSessionToken(token);
-            }
-            setIsSynced(true);
-          } catch (e) {
-            setIsSynced(true);
+      if (!isLoaded) return;
+      if (isSignedIn) {
+        try {
+          const token = await getToken();
+          if (token && active) {
+            await setSessionToken(token);
           }
-        } else {
-          await clearSessionToken();
-          setIsSynced(true);
+          if (active) setIsSynced(true);
+        } catch (e) {
+          if (active) setIsSynced(true);
         }
+      } else {
+        await clearSessionToken();
+        if (active) setIsSynced(true);
       }
     }
-    setIsSynced(false);
-    syncToken();
-  }, [isSignedIn, isLoaded, getToken]);
+
+    if (isLoaded) {
+      if (isSignedIn) {
+        setIsSynced(false);
+      } else {
+        setIsSynced(true);
+      }
+      syncToken();
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [isSignedIn, isLoaded]);
 
   return {
     token: null,
