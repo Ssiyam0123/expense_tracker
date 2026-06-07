@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
@@ -42,6 +43,14 @@ export default function ProfileScreen() {
   const totalBudgetsCount = Array.isArray(budgets) ? budgets.length : 0;
   const totalCategoriesCount = Array.isArray(categories) ? categories.length : 0;
 
+  if (!isUserLoaded || isAuthLoading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }} className="flex-1 bg-black justify-center items-center">
+        <ActivityIndicator size="large" color="#10B981" />
+      </SafeAreaView>
+    );
+  }
+
   const userEmail = user?.primaryEmailAddress?.emailAddress || "user@example.com";
   const userFullName = user?.fullName || user?.firstName || "Expense Tracker User";
   const userImageUrl = user?.imageUrl;
@@ -52,7 +61,7 @@ export default function ProfileScreen() {
     : "Recently";
 
   return (
-    <SafeAreaView className="flex-1 bg-zinc-950">
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }} className="flex-1 bg-black" edges={["top", "left", "right"]}>
       {/* Background ambient light blobs */}
       <View className="absolute top-[-50] left-[-50] w-[200px] h-[200px] bg-emerald-500/10 rounded-full blur-[80px]" />
       <View className="absolute bottom-[100] right-[-60] w-[220px] h-[220px] bg-emerald-600/5 rounded-full blur-[90px]" />
