@@ -3,6 +3,7 @@ services:
     name: expense-tracker-backend
     env: node
     plan: free
+    rootDir: backend
     buildCommand: npm run build
     startCommand: npm run start
     envVars:
