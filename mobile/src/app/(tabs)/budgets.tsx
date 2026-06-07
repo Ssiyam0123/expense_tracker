@@ -7,6 +7,8 @@ import {
   RefreshControl,
   ActivityIndicator,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import * as RN from "react-native";
 const NativeInput = RN.TextInput;
@@ -233,8 +235,12 @@ export default function BudgetsScreen() {
         transparent
         onRequestClose={() => setShowAddModal(false)}
       >
-        <View className="flex-1 justify-end bg-black/60">
-          <View className="bg-zinc-900 rounded-t-3xl p-6 gap-4 border-t border-white/[0.08]">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1 }}
+        >
+          <View className="flex-1 justify-end bg-black/60">
+            <View className="bg-zinc-900 rounded-t-3xl p-6 gap-4 border-t border-white/[0.08]">
             <Text className="text-white text-xl font-bold">New Budget</Text>
 
             {/* Category picker */}
@@ -319,7 +325,7 @@ export default function BudgetsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );

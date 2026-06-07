@@ -81,8 +81,9 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }} className="flex-1 bg-black" edges={["top", "left", "right", "bottom"]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+        style={{ flex: 1 }}
       >
         <ScrollView
           contentContainerClassName="flex-1 justify-center px-6"
@@ -198,10 +199,9 @@ export default function LoginScreen() {
             </View>
 
 
-            {/* Signup link */}
             <View className="flex-row justify-center gap-1">
-              <Text className="text-zinc-500 text-sm">Don't have an account?</Text>
-              <Link href="/(auth)/signup" className="text-emerald-400 text-sm font-medium">
+              <Text style={{ color: "#a1a1aa", fontSize: 14 }}>Don't have an account?</Text>
+              <Link href="/(auth)/signup" style={{ color: "#34d399", fontSize: 14, fontWeight: "500" }}>
                 Sign Up
               </Link>
             </View>
