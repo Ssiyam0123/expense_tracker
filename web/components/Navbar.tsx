@@ -20,6 +20,7 @@ export function Navbar({ userImage, userName, signOutAction }: NavbarProps) {
     { href: "/dashboard", label: "Dashboard" },
     { href: "/dashboard/transactions", label: "Transactions" },
     { href: "/dashboard/budgets", label: "Budgets" },
+    { href: "/dashboard/profile", label: "Profile" },
   ];
 
   return (
