@@ -325,8 +325,9 @@ export default function BudgetsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
     </SafeAreaView>
   );
 }
