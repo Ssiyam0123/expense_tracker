@@ -23,7 +23,7 @@ import { useDashboardStore } from "@/stores/dashboard";
 import { useCategoryStore } from "@/stores/categories";
 import { useTransactionStore } from "@/stores/transactions";
 import { formatCurrency, getCurrentMonthYear, fromMinorUnits } from "@/lib/utils";
-import { useAuthStore } from "@/stores/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const MONTH_NAMES = [
@@ -36,7 +36,7 @@ export default function DashboardScreen() {
   const { summary, isLoading, error, fetchSummary } = useDashboardStore();
   const { categories, fetchCategories } = useCategoryStore();
   const { transactions, fetchTransactions } = useTransactionStore();
-  const { signOut } = useAuthStore();
+  const { signOut } = useAuth();
 
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
 

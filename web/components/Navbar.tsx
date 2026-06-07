@@ -4,10 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { UserButton } from "@clerk/nextjs";
+
 interface NavbarProps {
   userImage?: string | null;
   userName?: string | null;
-  signOutAction: () => Promise<void>;
+  signOutAction?: () => Promise<void>;
 }
 
 export function Navbar({ userImage, userName, signOutAction }: NavbarProps) {
@@ -51,30 +53,12 @@ export function Navbar({ userImage, userName, signOutAction }: NavbarProps) {
 
         {/* Desktop User Info / Logout */}
         <div className="hidden md:flex items-center gap-3">
-          {userImage && (
-            <img
-              src={userImage}
-              alt={userName || "User"}
-              className="h-7 w-7 rounded-full ring-1 ring-white/10"
-            />
-          )}
-          <button
-            onClick={() => signOutAction()}
-            className="rounded-lg px-3 py-1.5 text-sm text-slate-400 hover:bg-white/5 hover:text-expense transition-colors"
-          >
-            Sign out
-          </button>
+          <UserButton />
         </div>
 
         {/* Mobile Hamburger Button */}
         <div className="flex md:hidden items-center gap-3">
-          {userImage && (
-            <img
-              src={userImage}
-              alt=""
-              className="h-6 w-6 rounded-full ring-1 ring-white/10"
-            />
-          )}
+          <UserButton />
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white focus:outline-none"
@@ -126,18 +110,9 @@ export function Navbar({ userImage, userName, signOutAction }: NavbarProps) {
               </Link>
             );
           })}
-          <div className="h-px bg-white/[0.08] my-2" />
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              signOutAction();
-            }}
-            className="w-full text-left rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-white/5 hover:text-expense transition-colors"
-          >
-            Sign out
-          </button>
         </div>
       )}
     </header>
   );
 }
+

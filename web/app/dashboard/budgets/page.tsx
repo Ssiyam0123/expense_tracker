@@ -1,10 +1,10 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@clerk/nextjs/server";
 import { serverApi } from "@/lib/server-api";
 import { BudgetManager } from "@/components/BudgetManager";
 
 export default async function BudgetsPage() {
-  const session = await auth();
-  if (!session?.user?.id) return null;
+  const { userId } = await auth();
+  if (!userId) return null;
 
   const now = new Date();
   const month = now.getMonth() + 1;

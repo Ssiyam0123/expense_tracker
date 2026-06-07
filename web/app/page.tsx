@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { auth } from "@clerk/nextjs/server";
 
 export const metadata = {
   title: "ExpenseTracker — Premium Personal Finance Engine",
@@ -7,7 +7,8 @@ export const metadata = {
 };
 
 export default async function PremiumLandingPage() {
-  const session = await auth();
+  const { userId } = await auth();
+
 
   return (
     <div className="relative min-h-screen bg-[#030303] text-[#f4f4f5] overflow-hidden font-sans antialiased selection:bg-emerald-500/20 selection:text-emerald-300">
@@ -80,7 +81,7 @@ export default async function PremiumLandingPage() {
             
             <div className="h-4 w-px bg-white/[0.08] hidden sm:block" />
 
-            {session ? (
+            {userId ? (
               <Link
                 href="/dashboard"
                 id="cta-dashboard-link"
@@ -128,7 +129,7 @@ export default async function PremiumLandingPage() {
 
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Link
-            href={session ? "/dashboard" : "/signup"}
+            href={userId ? "/dashboard" : "/signup"}
             id="hero-start-cta"
             className="rounded-xl bg-emerald-500 px-6 py-3.5 text-xs font-bold text-black hover:bg-emerald-400 shadow-xl shadow-emerald-500/20 active:scale-[0.98] transition-all"
           >

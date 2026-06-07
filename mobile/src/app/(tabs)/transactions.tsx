@@ -120,9 +120,9 @@ export default function TransactionsScreen() {
           </View>
         ) : (
           <View className="gap-2">
-            {filtered.map((txn) => (
+            {filtered.map((txn, index) => (
               <TransactionCard
-                key={txn.localId || txn._id}
+                key={txn.localId || txn._id || `txn_${index}`}
                 transaction={txn}
                 onPress={() =>
                   router.push(

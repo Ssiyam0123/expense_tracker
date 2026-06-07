@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { signOut } from "@/lib/auth";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { Navbar } from "@/components/Navbar";
 import Script from "next/script";
 
@@ -9,15 +8,12 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  if (!session?.user) {
+  const { userId } = await auth();
+  if (!userId) {
     redirect("/login");
   }
+  const user = await currentUser();
 
-  async function signOutAction() {
-    "use server";
-    await signOut({ redirectTo: "/login" });
-  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -25,14 +21,13 @@ export default async function DashboardLayout({
       <Script
         id="user-id-setup"
         dangerouslySetInnerHTML={{
-          __html: `window.__USER_ID__ = "${session.user.id}";`,
+          __html: `window.__USER_ID__ = "${userId}";`,
         }}
       />
 
       <Navbar
-        userImage={session.user.image}
-        userName={session.user.name}
-        signOutAction={signOutAction}
+        userImage={user?.imageUrl || null}
+        userName={user?.fullName || null}
       />
 
       {/* Main content */}

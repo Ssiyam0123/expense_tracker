@@ -1,21 +1,10 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@clerk/nextjs/server";
 
 const API_BASE = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 /**
- * Build a base64-encoded x-user-id token for Express auth middleware.
- */
-function buildXUserId(userId: string): string {
-  const payload = {
-    userId,
-    exp: Date.now() + 30 * 24 * 60 * 60 * 1000,
-  };
-  return Buffer.from(JSON.stringify(payload)).toString("base64");
-}
-
-/**
  * Make an authenticated server-side request to the Express backend.
- * Automatically gets the userId from the NextAuth session.
+ * Automatically gets the JWT token from the Clerk session.
  */
 async function serverFetch<T = unknown>(
   path: string,
@@ -26,7 +15,7 @@ async function serverFetch<T = unknown>(
   } = {}
 ): Promise<{ data: T | null; error: { code: string; message: string; details: unknown } | null; meta: Record<string, unknown> }> {
   const session = await auth();
-  const userId = session?.user?.id;
+  const token = await session.getToken();
 
   const { method = "GET", body, params } = options;
 
@@ -45,9 +34,9 @@ async function serverFetch<T = unknown>(
 
   const headers: Record<string, string> = {};
 
-  // Add x-user-id header for authentication
-  if (userId) {
-    headers["x-user-id"] = buildXUserId(userId);
+  // Add Clerk Bearer token for authentication
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   if (body !== undefined) {

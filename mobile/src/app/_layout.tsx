@@ -1,11 +1,39 @@
 import { useEffect } from "react";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { View, ActivityIndicator, useColorScheme } from "react-native";
+import { View, ActivityIndicator, useColorScheme, Platform } from "react-native";
 import { useAuth } from "@/hooks/useAuth";
 import { useToastStore } from "@/stores/toast";
 import { Text, TouchableOpacity } from "react-native";
+import { ClerkProvider } from "@clerk/clerk-expo";
+import * as SecureStore from "expo-secure-store";
 import "../global.css";
+
+const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_bmljZS1mbGFtaW5nby05My5jbGVyay5hY2NvdW50cy5kZXYk";
+
+const tokenCache = {
+  async getToken(key: string) {
+    try {
+      if (Platform.OS === "web") {
+        return localStorage.getItem(key);
+      }
+      return await SecureStore.getItemAsync(key);
+    } catch (error) {
+      return null;
+    }
+  },
+  async saveToken(key: string, value: string) {
+    try {
+      if (Platform.OS === "web") {
+        localStorage.setItem(key, value);
+        return;
+      }
+      await SecureStore.setItemAsync(key, value);
+    } catch (err) {
+      // Silently fail
+    }
+  },
+};
 
 function ToastContainer() {
   const { message, type, hideToast } = useToastStore();
@@ -75,12 +103,13 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <>
+    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <AuthGuard>
         <Slot />
       </AuthGuard>
       <ToastContainer />
-    </>
+    </ClerkProvider>
   );
 }
+

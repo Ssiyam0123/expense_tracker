@@ -1,62 +1,52 @@
 import { useEffect } from "react";
-import { useAuthStore } from "@/stores/auth";
-import {
-  isAuthenticated,
-  getSessionToken,
-} from "@/lib/api";
-import { startBackgroundSync, stopBackgroundSync } from "@/db/sync";
+import { useAuth as useClerkAuth } from "@clerk/clerk-expo";
+import { setSessionToken, clearSessionToken } from "@/lib/api";
 
 /**
- * Custom hook for managing authentication state.
- * Initializes auth on mount and manages background sync lifecycle.
+ * Custom hook for managing authentication state via Clerk.
+ * Syncs the active Clerk JWT token to the Axios api client on mount/changes.
  */
 export function useAuth() {
-  const {
-    token,
-    isLoading,
-    isSignedIn,
-    serverUrl,
-    initialize,
-    signIn,
-    signOut,
-    setServerUrl,
-  } = useAuthStore();
+  const { isSignedIn, isLoaded, signOut, getToken } = useClerkAuth();
 
   useEffect(() => {
-    initialize();
-  }, [initialize]);
-
-  // Manage background sync based on auth state
-  useEffect(() => {
-    if (isSignedIn) {
-      startBackgroundSync();
+    async function syncToken() {
+      if (isLoaded) {
+        if (isSignedIn) {
+          try {
+            const token = await getToken();
+            if (token) {
+              await setSessionToken(token);
+            }
+          } catch (e) {
+            // Ignore error
+          }
+        } else {
+          await clearSessionToken();
+        }
+      }
     }
-    return () => {
-      stopBackgroundSync();
-    };
-  }, [isSignedIn]);
+    syncToken();
+  }, [isSignedIn, isLoaded, getToken]);
 
   return {
-    token,
-    isLoading,
-    isSignedIn,
-    serverUrl,
-    signIn,
-    signOut,
-    setServerUrl,
+    token: null,
+    isLoading: !isLoaded,
+    isSignedIn: !!isSignedIn,
+    serverUrl: "http://localhost:5000/api/v1", // Default dev backend
+    signIn: async () => {}, // Handled directly in screen components via Clerk hooks
+    signOut: async () => {
+      await signOut();
+      await clearSessionToken();
+    },
+    setServerUrl: () => {},
   };
 }
 
-/**
- * Get the current auth token directly (for use outside components).
- */
 export async function getAuthToken(): Promise<string | null> {
-  return getSessionToken();
+  return null; // Token is managed internally by Clerk
 }
 
-/**
- * Check if authenticated (for use outside components).
- */
 export async function checkAuth(): Promise<boolean> {
-  return isAuthenticated();
+  return false;
 }

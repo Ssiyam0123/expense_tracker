@@ -1,64 +1,68 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyToken, JwtPayload } from "../utils/jwt";
+import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
 import { apiError } from "../utils/response";
 import { logger } from "../utils/logger";
+import { User } from "../models/User";
+import { connectDB } from "../utils/db";
+
+interface UserPayload {
+  userId: string;
+  email: string;
+}
 
 declare global {
   namespace Express {
     interface Request {
-      user?: JwtPayload;
+      user?: UserPayload;
+      auth?: {
+        userId: string | null;
+        sessionId: string | null;
+        actor: unknown;
+        sessionClaims: unknown;
+      };
     }
   }
 }
 
-/**
- * Middleware that verifies JWT from Authorization header (Bearer token).
- * Also supports a base64-encoded JSON token in x-user-id header for mobile compatibility.
- * The x-user-id format must be: base64({ userId, exp }) where exp > Date.now().
- */
+// Wrap ClerkExpressWithAuth in our custom authenticate middleware
+const clerkMiddleware = ClerkExpressWithAuth();
+
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
-  // 1. Check Authorization header (Bearer token) - primary method
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    const token = authHeader.substring(7);
-    try {
-      const payload = verifyToken(token);
-      req.user = payload;
-      next();
-      return;
-    } catch (err) {
-      apiError(res, "UNAUTHORIZED", "Invalid or expired token", 401);
-      return;
-    }
-  }
-
-  // 2. Fallback: verify custom x-user-id header for mobile compatibility
-  // Expects base64-encoded JSON: { userId: string, exp: number }
-  const xUserId = req.headers["x-user-id"] as string | undefined;
-  if (xUserId) {
-    try {
-      const decoded = Buffer.from(xUserId, "base64").toString("utf-8");
-      const parsed = JSON.parse(decoded);
-      if (
-        parsed.userId &&
-        typeof parsed.userId === "string" &&
-        parsed.exp &&
-        typeof parsed.exp === "number" &&
-        parsed.exp > Date.now()
-      ) {
-        req.user = { userId: parsed.userId, email: "" };
+  clerkMiddleware(req as any, res as any, async () => {
+    if (req.auth && req.auth.userId) {
+      try {
+        await connectDB();
+        
+        // Find MongoDB user associated with this Clerk User ID
+        let user = await User.findOne({ providerId: req.auth.userId });
+        
+        if (!user) {
+          // Fallbacks for name and email from session claims
+          const email = (req.auth.sessionClaims as any)?.email || `${req.auth.userId}@clerk.local`;
+          const name = (req.auth.sessionClaims as any)?.name || "Clerk User";
+          
+          user = await User.create({
+            email,
+            name,
+            provider: "google", // Map as standard provider login
+            providerId: req.auth.userId,
+          });
+          logger.info({ userId: user._id.toString() }, "Created new MongoDB user document for Clerk ID");
+        }
+        
+        req.user = {
+          userId: user._id.toString(),
+          email: user.email,
+        };
         next();
-        return;
+      } catch (err) {
+        logger.error({ err }, "Error syncing Clerk user to MongoDB");
+        apiError(res, "INTERNAL", "Failed to sync user session", 500);
       }
-      logger.warn({ xUserId: xUserId.substring(0, 20) }, "Invalid or expired x-user-id token");
-      apiError(res, "UNAUTHORIZED", "Invalid or expired mobile token", 401);
-      return;
-    } catch {
-      logger.warn("Failed to parse x-user-id header");
-      apiError(res, "UNAUTHORIZED", "Invalid mobile token format", 401);
-      return;
+    } else {
+      logger.warn("Unauthenticated request blocked by Clerk middleware");
+      apiError(res, "UNAUTHORIZED", "Authentication required", 401);
     }
-  }
-
-  apiError(res, "UNAUTHORIZED", "Authentication required", 401);
+  });
 }
+

@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@clerk/nextjs/server";
 import { serverApi } from "@/lib/server-api";
 import { TransactionList } from "@/components/TransactionList";
 
@@ -7,8 +7,8 @@ export default async function TransactionsPage({
 }: {
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  const session = await auth();
-  if (!session?.user?.id) return null;
+  const { userId } = await auth();
+  if (!userId) return null;
 
   const params = await searchParams;
   const page = parseInt(params.page || "1", 10);
