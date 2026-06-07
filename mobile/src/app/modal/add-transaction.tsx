@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
@@ -10,6 +9,8 @@ import {
   ActivityIndicator,
   Modal,
 } from "react-native";
+import * as RN from "react-native";
+const TextInput = RN.TextInput;
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTransactionStore } from "@/stores/transactions";
 import { useCategoryStore } from "@/stores/categories";

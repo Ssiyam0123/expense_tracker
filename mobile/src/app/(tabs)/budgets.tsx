@@ -6,9 +6,10 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  TextInput,
   Modal,
 } from "react-native";
+import * as RN from "react-native";
+const TextInput = RN.TextInput;
 import { useBudgetStore, Budget } from "@/stores/budgets";
 import { useCategoryStore } from "@/stores/categories";
 import { useDashboardStore } from "@/stores/dashboard";

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
@@ -10,6 +9,8 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import * as RN from "react-native";
+const TextInput = RN.TextInput;
 import { useRouter } from "expo-router";
 import { useCategoryStore, Category } from "@/stores/categories";
 import { useToastStore } from "@/stores/toast";

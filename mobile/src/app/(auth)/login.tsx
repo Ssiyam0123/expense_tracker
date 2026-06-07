@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
@@ -10,6 +9,8 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
+import * as RN from "react-native";
+const TextInput = RN.TextInput;
 import { Link, useRouter } from "expo-router";
 import { useSignIn, useOAuth } from "@clerk/clerk-expo";
 import * as WebBrowser from "expo-web-browser";
