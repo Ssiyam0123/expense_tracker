@@ -202,7 +202,7 @@ export default function AddTransactionModal() {
             >
               {/* Manage shortcut */}
               <TouchableOpacity
-                className="rounded-2xl px-4 py-3 items-center justify-center gap-1 min-w-[80] bg-emerald-500/10 border border-emerald-500/20"
+                className="rounded-2xl px-4 py-3 items-center justify-center gap-1 min-w-[80px] bg-emerald-500/10 border border-emerald-500/20"
                 onPress={() => router.push("/modal/add-category")}
               >
                 <Text className="text-2xl">⚙️</Text>
@@ -212,7 +212,7 @@ export default function AddTransactionModal() {
               {filteredCategories.map((cat) => (
                 <TouchableOpacity
                   key={cat._id}
-                  className={`rounded-2xl px-4 py-3 items-center gap-1 min-w-[80] ${
+                  className={`rounded-2xl px-4 py-3 items-center gap-1 min-w-[80px] ${
                     categoryId === cat._id
                       ? "bg-white/[0.12] border border-white/[0.2]"
                       : "bg-white/[0.04] border border-white/[0.06]"
@@ -244,7 +244,7 @@ export default function AddTransactionModal() {
               {paymentMethods.map((pm) => (
                 <TouchableOpacity
                   key={pm._id}
-                  className={`rounded-2xl px-4 py-3 items-center gap-1 min-w-[80] ${
+                  className={`rounded-2xl px-4 py-3 items-center gap-1 min-w-[80px] ${
                     paymentMethodId === pm._id
                       ? "bg-white/[0.12] border border-white/[0.2]"
                       : "bg-white/[0.04] border border-white/[0.06]"
