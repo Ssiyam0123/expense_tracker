@@ -57,6 +57,11 @@ export default function AddTransactionModal() {
   for (let i = 1; i <= daysInMonth; i++) {
     daysArray.push(i);
   }
+  // Pad the end to ensure the grid always has rows of 7 items
+  const totalSlots = Math.ceil(daysArray.length / 7) * 7;
+  while (daysArray.length < totalSlots) {
+    daysArray.push(null);
+  }
 
   const weekDays = ["M", "T", "W", "T", "F", "S", "S"];
 
