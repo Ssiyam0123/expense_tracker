@@ -362,7 +362,17 @@ export default function AddTransactionModal() {
         >
           <View className="flex-1 justify-center items-center bg-black/75 px-5">
             <View className="bg-zinc-950 border border-white/[0.08] rounded-3xl p-6 w-full max-w-sm gap-4">
-              <Text className="text-white text-lg font-bold text-center">Select Date</Text>
+              <View className="flex-row justify-between items-center pb-2">
+                <View className="w-6" />
+                <Text className="text-white text-lg font-bold text-center">Select Date</Text>
+                <TouchableOpacity
+                  onPress={() => setShowDatePicker(false)}
+                  style={{ padding: 4 }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ color: "#71717a", fontSize: 18, fontWeight: "bold" }}>✕</Text>
+                </TouchableOpacity>
+              </View>
 
               {/* Month/Year Nav */}
               <View className="flex-row justify-between items-center py-2 px-1">

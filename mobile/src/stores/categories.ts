@@ -61,9 +61,11 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
         set({ categories: [...get().categories, res.data] });
       } else if (res.error) {
         set({ error: res.error.message });
+        throw new Error(res.error.message);
       }
     } catch (err) {
       set({ error: (err as Error).message || "Failed to add category" });
+      throw err;
     }
   },
 
@@ -79,9 +81,11 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
         });
       } else if (res.error) {
         set({ error: res.error.message });
+        throw new Error(res.error.message);
       }
     } catch (err) {
       set({ error: (err as Error).message || "Failed to update category" });
+      throw err;
     }
   },
 
@@ -91,9 +95,13 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
       const res = await apiDelete<{ deleted: boolean }>("/categories", { id });
       if (res.data?.deleted) {
         set({ categories: get().categories.filter((c) => c._id !== id) });
+      } else if (res.error) {
+        set({ error: res.error.message });
+        throw new Error(res.error.message);
       }
     } catch (err) {
       set({ error: (err as Error).message || "Failed to remove category" });
+      throw err;
     }
   },
 }));
