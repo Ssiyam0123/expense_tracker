@@ -103,7 +103,8 @@ export default async function PremiumLandingPage() {
                   id="cta-signup-link"
                   className="glow-button rounded-xl bg-white text-black px-4 py-2 text-xs font-bold shadow-lg shadow-white/5 active:scale-95 hover:bg-zinc-100 transition-all"
                 >
-                  Start Tracking Free
+                  <span className="hidden sm:inline">Start Tracking Free</span>
+                  <span className="inline sm:hidden">Start Free</span>
                 </Link>
               </div>
             )}
