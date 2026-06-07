@@ -175,7 +175,16 @@ export default function AddCategoryModal() {
           <View className="mb-5">
             <Text className="text-zinc-400 text-xs font-semibold mb-2">Category Name</Text>
             <TextInput
-              className="bg-white/[0.06] border border-white/[0.08] rounded-2xl px-4 py-3 text-white text-base"
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.06)",
+                borderWidth: 1,
+                borderColor: "rgba(255, 255, 255, 0.08)",
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                color: "#ffffff",
+                fontSize: 16,
+              }}
               placeholder="e.g. Groceries"
               placeholderTextColor="#71717a"
               value={name}
@@ -191,7 +200,18 @@ export default function AddCategoryModal() {
               <View className="flex-row items-center gap-1.5">
                 <Text className="text-zinc-400 text-[10px] font-semibold">Custom:</Text>
                 <TextInput
-                  className="bg-white/[0.06] border border-white/[0.08] rounded-lg px-2 py-1 text-white text-xs w-10 text-center"
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.06)",
+                    borderWidth: 1,
+                    borderColor: "rgba(255, 255, 255, 0.08)",
+                    borderRadius: 8,
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    color: "#ffffff",
+                    fontSize: 12,
+                    width: 40,
+                    textAlign: "center",
+                  }}
                   placeholder="📌"
                   placeholderTextColor="#71717a"
                   value={icon}
@@ -199,7 +219,7 @@ export default function AddCategoryModal() {
                     const lastChar = Array.from(text).pop() || "📌";
                     setIcon(lastChar);
                   }}
-                  maxLength={4}
+                  maxLength={5}
                 />
               </View>
             </View>

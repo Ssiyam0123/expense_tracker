@@ -182,7 +182,18 @@ export default function AddTransactionModal() {
           <View className="mb-5">
             <Text className="text-zinc-400 text-sm mb-2">Amount (BDT)</Text>
             <TextInput
-              className="bg-white/[0.06] border border-white/[0.08] rounded-2xl px-5 py-4 text-white text-3xl font-bold text-center"
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.06)",
+                borderWidth: 1,
+                borderColor: "rgba(255, 255, 255, 0.08)",
+                borderRadius: 16,
+                paddingHorizontal: 20,
+                paddingVertical: 16,
+                color: "#ffffff",
+                fontSize: 30,
+                fontWeight: "bold",
+                textAlign: "center",
+              }}
               placeholder="0.00"
               placeholderTextColor="#52525b"
               value={amount}
@@ -269,7 +280,16 @@ export default function AddTransactionModal() {
           <View className="mb-6">
             <Text className="text-zinc-400 text-sm mb-2">Note (optional)</Text>
             <TextInput
-              className="bg-white/[0.06] border border-white/[0.08] rounded-2xl px-4 py-3.5 text-white text-base"
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.06)",
+                borderWidth: 1,
+                borderColor: "rgba(255, 255, 255, 0.08)",
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                color: "#ffffff",
+                fontSize: 16,
+              }}
               placeholder="What was this for?"
               placeholderTextColor="#71717a"
               value={note}
