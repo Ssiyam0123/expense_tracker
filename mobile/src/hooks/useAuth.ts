@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth as useClerkAuth } from "@clerk/clerk-expo";
 import { setSessionToken, clearSessionToken } from "@/lib/api";
 
@@ -8,6 +8,7 @@ import { setSessionToken, clearSessionToken } from "@/lib/api";
  */
 export function useAuth() {
   const { isSignedIn, isLoaded, signOut, getToken } = useClerkAuth();
+  const [isSynced, setIsSynced] = useState(false);
 
   useEffect(() => {
     async function syncToken() {
@@ -18,20 +19,23 @@ export function useAuth() {
             if (token) {
               await setSessionToken(token);
             }
+            setIsSynced(true);
           } catch (e) {
-            // Ignore error
+            setIsSynced(true);
           }
         } else {
           await clearSessionToken();
+          setIsSynced(true);
         }
       }
     }
+    setIsSynced(false);
     syncToken();
   }, [isSignedIn, isLoaded, getToken]);
 
   return {
     token: null,
-    isLoading: !isLoaded,
+    isLoading: !isLoaded || (!!isSignedIn && !isSynced),
     isSignedIn: !!isSignedIn,
     serverUrl: "http://localhost:5000/api/v1", // Default dev backend
     signIn: async () => {}, // Handled directly in screen components via Clerk hooks
