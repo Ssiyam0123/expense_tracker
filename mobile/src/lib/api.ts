@@ -7,9 +7,26 @@ const DEVICE_ID_KEY = "device_id";
 
 let API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
+// Resolve localhost for Android emulator
+if (Platform.OS === "android") {
+  if (API_URL.includes("localhost")) {
+    API_URL = API_URL.replace("localhost", "10.0.2.2");
+  } else if (API_URL.includes("127.0.0.1")) {
+    API_URL = API_URL.replace("127.0.0.1", "10.0.2.2");
+  }
+}
+
 export function setApiBaseUrl(url: string) {
-  API_URL = url;
-  apiClient.defaults.baseURL = url;
+  let resolvedUrl = url;
+  if (Platform.OS === "android") {
+    if (resolvedUrl.includes("localhost")) {
+      resolvedUrl = resolvedUrl.replace("localhost", "10.0.2.2");
+    } else if (resolvedUrl.includes("127.0.0.1")) {
+      resolvedUrl = resolvedUrl.replace("127.0.0.1", "10.0.2.2");
+    }
+  }
+  API_URL = resolvedUrl;
+  apiClient.defaults.baseURL = resolvedUrl;
 }
 
 export function getApiBaseUrl(): string {

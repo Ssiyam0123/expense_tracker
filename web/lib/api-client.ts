@@ -21,6 +21,11 @@ interface RequestOptions {
 declare global {
   interface Window {
     __USER_ID__?: string;
+    Clerk?: {
+      session?: {
+        getToken: () => Promise<string | null>;
+      };
+    };
   }
 }
 
@@ -75,6 +80,18 @@ export async function apiFetch<T = unknown>(
   const userId = getUserId();
   if (userId) {
     fetchHeaders["x-user-id"] = buildXUserId(userId);
+  }
+
+  // Get Clerk session token if available on the client-side
+  if (typeof window !== "undefined" && window.Clerk?.session) {
+    try {
+      const token = await window.Clerk.session.getToken();
+      if (token) {
+        fetchHeaders["Authorization"] = `Bearer ${token}`;
+      }
+    } catch (err) {
+      console.error("Failed to retrieve Clerk token:", err);
+    }
   }
 
   if (body !== undefined) {
