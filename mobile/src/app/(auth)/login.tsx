@@ -24,6 +24,7 @@ export default function LoginScreen() {
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -123,14 +124,23 @@ export default function LoginScreen() {
 
               <View className="gap-2">
                 <Text className="text-zinc-300 text-sm font-medium">Password</Text>
-                <TextInput
-                  className="bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3.5 text-white text-base"
-                  placeholder="••••••••"
-                  placeholderTextColor="#71717a"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
+                <View className="relative justify-center">
+                  <TextInput
+                    className="bg-white/[0.06] border border-white/[0.08] rounded-xl pl-4 pr-12 py-3.5 text-white text-base"
+                    placeholder="••••••••"
+                    placeholderTextColor="#71717a"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 p-1"
+                    activeOpacity={0.7}
+                  >
+                    <Text className="text-lg">{showPassword ? "👁️" : "🙈"}</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {error && (
