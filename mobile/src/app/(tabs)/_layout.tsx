@@ -5,21 +5,14 @@ import { BlurView } from "expo-blur";
 function TabIcon({
   focused,
   icon,
-  label,
 }: {
   focused: boolean;
   icon: string;
-  label: string;
 }) {
   return (
-    <View className="items-center justify-center gap-0.5 pt-1">
-      <Text className="text-lg">{icon}</Text>
-      <Text
-        className={`text-[10px] font-medium ${
-          focused ? "text-emerald-400" : "text-zinc-500"
-        }`}
-      >
-        {label}
+    <View className="items-center justify-center pt-2">
+      <Text className="text-2xl" style={{ opacity: focused ? 1 : 0.6 }}>
+        {icon}
       </Text>
     </View>
   );
@@ -68,7 +61,7 @@ export default function TabLayout() {
         name="index"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="📊" label="Dashboard" />
+            <TabIcon focused={focused} icon="📊" />
           ),
         }}
       />
@@ -76,7 +69,7 @@ export default function TabLayout() {
         name="transactions"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="💳" label="Transactions" />
+            <TabIcon focused={focused} icon="💳" />
           ),
         }}
       />
@@ -84,7 +77,7 @@ export default function TabLayout() {
         name="budgets"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="🎯" label="Budgets" />
+            <TabIcon focused={focused} icon="🎯" />
           ),
         }}
       />
