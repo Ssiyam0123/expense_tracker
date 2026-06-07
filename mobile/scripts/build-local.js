@@ -71,17 +71,15 @@ console.log('✅ Sync completed.');
 const buildType = process.argv[2] || 'all'; // 'apk', 'aab', 'all'
 const buildDir = path.join(targetDir, 'android');
 
-if (!fs.existsSync(path.join(targetDir, 'node_modules'))) {
-  console.log('📦 Installing dependencies in build directory...');
-  try {
-    execSync('npm install', {
-      cwd: targetDir,
-      stdio: 'inherit'
-    });
-  } catch (err) {
-    console.error('❌ Failed to install dependencies:', err.message);
-    process.exit(1);
-  }
+console.log('📦 Syncing dependencies in build directory...');
+try {
+  execSync('npm install', {
+    cwd: targetDir,
+    stdio: 'inherit'
+  });
+} catch (err) {
+  console.error('❌ Failed to install/sync dependencies:', err.message);
+  process.exit(1);
 }
 
 if (!fs.existsSync(buildDir)) {
