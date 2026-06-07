@@ -103,10 +103,11 @@ export default function DashboardScreen() {
         const day = date.getDate();
         if (dailyData[day]) {
           const val = fromMinorUnits(tx.amountMinor);
+          const safeVal = isNaN(val) || val === null || val === undefined ? 0 : val;
           if (tx.type === "income") {
-            dailyData[day].income += val;
+            dailyData[day].income += safeVal;
           } else {
-            dailyData[day].expense += val;
+            dailyData[day].expense += safeVal;
           }
         }
       }
@@ -132,15 +133,18 @@ export default function DashboardScreen() {
     const chartH = height - paddingY * 2;
 
     const maxVal = Math.max(
-      ...points.map((p) => Math.max(p.income, p.expense)),
+      ...points.map((p) => Math.max(isNaN(p.income) ? 0 : p.income, isNaN(p.expense) ? 0 : p.expense)),
       1000 // default max
     );
+    const safeMaxVal = isNaN(maxVal) || maxVal <= 0 ? 1000 : maxVal;
 
     // Compute coordinates
     const coordinates = points.map((p, idx) => {
       const x = paddingX + (idx / (points.length - 1)) * chartW;
-      const yIncome = height - paddingY - (p.income / maxVal) * chartH;
-      const yExpense = height - paddingY - (p.expense / maxVal) * chartH;
+      const incomeVal = isNaN(p.income) ? 0 : p.income;
+      const expenseVal = isNaN(p.expense) ? 0 : p.expense;
+      const yIncome = height - paddingY - (incomeVal / safeMaxVal) * chartH;
+      const yExpense = height - paddingY - (expenseVal / safeMaxVal) * chartH;
       return {
         day: p.day,
         income: p.income,
