@@ -57,6 +57,10 @@ export function TransactionList({
 
   const currentType = searchParams.get("type") || "";
   const currentCategory = searchParams.get("categoryId") || "";
+  const currentStartDate = searchParams.get("startDate") || "";
+  const currentEndDate = searchParams.get("endDate") || "";
+  const currentSortBy = searchParams.get("sortBy") || "timestamp";
+  const currentSortOrder = searchParams.get("sortOrder") || "desc";
 
   // Edit transaction state
   const [editingTx, setEditingTx] = useState<TransactionRecord | null>(null);
@@ -189,36 +193,105 @@ export function TransactionList({
   return (
     <div>
       {/* Filters */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-3">
-        <div className="flex flex-1 gap-2">
-          <select
-            value={currentType}
-            onChange={(e) => updateFilter("type", e.target.value)}
-            className="flex-1 sm:flex-none rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-3.5 py-2.5 text-sm text-white focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all cursor-pointer hover:border-white/[0.15]"
-          >
-            <option value="" className="bg-slate-950 text-white">All types</option>
-            <option value="expense" className="bg-slate-950 text-white">Expense</option>
-            <option value="income" className="bg-slate-950 text-white">Income</option>
-          </select>
-          <select
-            value={currentCategory}
-            onChange={(e) => updateFilter("categoryId", e.target.value)}
-            className="flex-1 sm:flex-none rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-3.5 py-2.5 text-sm text-white focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all cursor-pointer hover:border-white/[0.15]"
-          >
-            <option value="" className="bg-slate-950 text-white">All categories</option>
-            {categories.map((c) => (
-              <option key={c._id} value={c._id} className="bg-slate-950 text-white">
-                {c.icon} {c.name}
-              </option>
-            ))}
-          </select>
+      <div className="mb-6 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-4">
+        {/* Row 1: Main filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-slate-400">Type</label>
+            <select
+              value={currentType}
+              onChange={(e) => updateFilter("type", e.target.value)}
+              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-3.5 py-2 text-sm text-white focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all cursor-pointer hover:border-white/[0.15]"
+            >
+              <option value="" className="bg-slate-950 text-white">All types</option>
+              <option value="expense" className="bg-slate-950 text-white">Expense</option>
+              <option value="income" className="bg-slate-950 text-white">Income</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-slate-400">Category</label>
+            <select
+              value={currentCategory}
+              onChange={(e) => updateFilter("categoryId", e.target.value)}
+              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-3.5 py-2 text-sm text-white focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all cursor-pointer hover:border-white/[0.15]"
+            >
+              <option value="" className="bg-slate-950 text-white">All categories</option>
+              {categories.map((c) => (
+                <option key={c._id} value={c._id} className="bg-slate-950 text-white">
+                  {c.icon} {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-slate-400">Start Date</label>
+            <input
+              type="date"
+              value={currentStartDate}
+              onChange={(e) => updateFilter("startDate", e.target.value)}
+              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-3.5 py-2 text-sm text-white focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all cursor-pointer hover:border-white/[0.15] [color-scheme:dark]"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-slate-400">End Date</label>
+            <input
+              type="date"
+              value={currentEndDate}
+              onChange={(e) => updateFilter("endDate", e.target.value)}
+              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-3.5 py-2 text-sm text-white focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all cursor-pointer hover:border-white/[0.15] [color-scheme:dark]"
+            />
+          </div>
         </div>
-        <a
-          href={`${API_URL}/api/v1/export.csv`}
-          className="w-full sm:w-auto text-center flex items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-4 py-2.5 text-sm text-slate-300 font-semibold transition-all hover:bg-white/5 hover:border-white/[0.15] hover:text-white"
-        >
-          📤 Export CSV
-        </a>
+
+        {/* Row 2: Sorting and Actions */}
+        <div className="flex flex-col sm:flex-row justify-between gap-3 border-t border-white/[0.06] pt-4">
+          <div className="flex flex-wrap gap-3 items-center">
+            <div>
+              <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Sort By</label>
+              <select
+                value={currentSortBy}
+                onChange={(e) => updateFilter("sortBy", e.target.value)}
+                className="rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-3 py-1.5 text-xs text-white focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all cursor-pointer hover:border-white/[0.15]"
+              >
+                <option value="timestamp" className="bg-slate-950 text-white">Date & Time</option>
+                <option value="amountMinor" className="bg-slate-950 text-white">Amount</option>
+                <option value="createdAt" className="bg-slate-950 text-white">Created Time</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Sort Order</label>
+              <select
+                value={currentSortOrder}
+                onChange={(e) => updateFilter("sortOrder", e.target.value)}
+                className="rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-3 py-1.5 text-xs text-white focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all cursor-pointer hover:border-white/[0.15]"
+              >
+                <option value="desc" className="bg-slate-950 text-white">Descending</option>
+                <option value="asc" className="bg-slate-950 text-white">Ascending</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex gap-2 items-end">
+            {(currentType || currentCategory || currentStartDate || currentEndDate || currentSortBy !== "timestamp" || currentSortOrder !== "desc") && (
+              <button
+                onClick={() => router.push("/dashboard/transactions")}
+                className="rounded-xl border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 px-3.5 py-2.5 text-xs font-semibold text-red-400 transition-all"
+              >
+                🧹 Reset Filters
+              </button>
+            )}
+            <a
+              href={`${API_URL}/api/v1/export.csv`}
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-4 py-2.5 text-xs text-slate-300 font-semibold transition-all hover:bg-white/5 hover:border-white/[0.15] hover:text-white"
+            >
+              📤 Export CSV
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* Transaction list */}
