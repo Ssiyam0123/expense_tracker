@@ -24,6 +24,7 @@ import { useCategoryStore } from "@/stores/categories";
 import { useTransactionStore } from "@/stores/transactions";
 import { formatCurrency, getCurrentMonthYear, fromMinorUnits } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useUser } from "@clerk/clerk-expo";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const MONTH_NAMES = [
@@ -37,6 +38,7 @@ export default function DashboardScreen() {
   const { categories, fetchCategories } = useCategoryStore();
   const { transactions, fetchTransactions } = useTransactionStore();
   const { signOut } = useAuth();
+  const { user } = useUser();
 
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
 
@@ -225,10 +227,22 @@ export default function DashboardScreen() {
             </View>
           </View>
           <TouchableOpacity
-            onPress={signOut}
-            className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2"
+            onPress={() => router.push("/profile")}
+            className="active:opacity-80"
           >
-            <Text className="text-zinc-400 text-xs font-semibold">Sign Out</Text>
+            {user?.imageUrl ? (
+              <Image
+                source={{ uri: user.imageUrl }}
+                style={{ width: 36, height: 36, borderRadius: 18 }}
+                className="border border-white/[0.1]"
+              />
+            ) : (
+              <View style={{ width: 36, height: 36, borderRadius: 18 }} className="bg-emerald-500/20 items-center justify-center border border-emerald-500/30">
+                <Text className="text-emerald-400 text-xs font-bold">
+                  {(user?.firstName || "U").charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
