@@ -10,7 +10,7 @@ import {
   Modal,
 } from "react-native";
 import * as RN from "react-native";
-const TextInput = RN.TextInput;
+const NativeInput = RN.TextInput;
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTransactionStore } from "@/stores/transactions";
 import { useCategoryStore } from "@/stores/categories";
@@ -182,7 +182,7 @@ export default function AddTransactionModal() {
           {/* Amount */}
           <View className="mb-5">
             <Text className="text-zinc-400 text-sm mb-2">Amount (BDT)</Text>
-            <TextInput
+            <NativeInput
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.06)",
                 borderWidth: 1,
@@ -280,7 +280,7 @@ export default function AddTransactionModal() {
           {/* Note */}
           <View className="mb-6">
             <Text className="text-zinc-400 text-sm mb-2">Note (optional)</Text>
-            <TextInput
+            <NativeInput
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.06)",
                 borderWidth: 1,

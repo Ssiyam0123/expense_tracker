@@ -9,7 +9,7 @@ import {
   Modal,
 } from "react-native";
 import * as RN from "react-native";
-const TextInput = RN.TextInput;
+const NativeInput = RN.TextInput;
 import { useBudgetStore, Budget } from "@/stores/budgets";
 import { useCategoryStore } from "@/stores/categories";
 import { useDashboardStore } from "@/stores/dashboard";
@@ -263,8 +263,17 @@ export default function BudgetsScreen() {
             {/* Amount */}
             <View className="gap-2">
               <Text className="text-zinc-400 text-sm">Monthly Budget (BDT)</Text>
-              <TextInput
-                className="bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3.5 text-white text-base"
+              <NativeInput
+                style={{
+                  backgroundColor: "rgba(255, 255, 255, 0.06)",
+                  borderWidth: 1,
+                  borderColor: "rgba(255, 255, 255, 0.08)",
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 14,
+                  color: "#ffffff",
+                  fontSize: 16,
+                }}
                 placeholder="e.g. 5000"
                 placeholderTextColor="#71717a"
                 value={budgetAmount}
@@ -276,8 +285,17 @@ export default function BudgetsScreen() {
             {/* Alert threshold */}
             <View className="gap-2">
               <Text className="text-zinc-400 text-sm">Alert at (%)</Text>
-              <TextInput
-                className="bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3.5 text-white text-base"
+              <NativeInput
+                style={{
+                  backgroundColor: "rgba(255, 255, 255, 0.06)",
+                  borderWidth: 1,
+                  borderColor: "rgba(255, 255, 255, 0.08)",
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 14,
+                  color: "#ffffff",
+                  fontSize: 16,
+                }}
                 value={alertPercent}
                 onChangeText={setAlertPercent}
                 keyboardType="number-pad"

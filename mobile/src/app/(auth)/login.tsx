@@ -10,7 +10,7 @@ import {
   Image,
 } from "react-native";
 import * as RN from "react-native";
-const TextInput = RN.TextInput;
+const NativeInput = RN.TextInput;
 import { Link, useRouter } from "expo-router";
 import { useSignIn, useOAuth } from "@clerk/clerk-expo";
 import * as WebBrowser from "expo-web-browser";
@@ -111,8 +111,17 @@ export default function LoginScreen() {
             <View className="gap-4">
               <View className="gap-2">
                 <Text className="text-zinc-300 text-sm font-medium">Email</Text>
-                <TextInput
-                  className="bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3.5 text-white text-base"
+                <NativeInput
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.06)",
+                    borderWidth: 1,
+                    borderColor: "rgba(255, 255, 255, 0.08)",
+                    borderRadius: 12,
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                    color: "#ffffff",
+                    fontSize: 16,
+                  }}
                   placeholder="you@example.com"
                   placeholderTextColor="#71717a"
                   value={email}
@@ -126,8 +135,18 @@ export default function LoginScreen() {
               <View className="gap-2">
                 <Text className="text-zinc-300 text-sm font-medium">Password</Text>
                 <View className="relative justify-center">
-                  <TextInput
-                    className="bg-white/[0.06] border border-white/[0.08] rounded-xl pl-4 pr-12 py-3.5 text-white text-base"
+                  <NativeInput
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.06)",
+                      borderWidth: 1,
+                      borderColor: "rgba(255, 255, 255, 0.08)",
+                      borderRadius: 12,
+                      paddingLeft: 16,
+                      paddingRight: 48,
+                      paddingVertical: 14,
+                      color: "#ffffff",
+                      fontSize: 16,
+                    }}
                     placeholder="••••••••"
                     placeholderTextColor="#71717a"
                     value={password}

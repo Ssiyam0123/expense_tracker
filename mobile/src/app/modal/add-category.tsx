@@ -10,7 +10,7 @@ import {
   Alert,
 } from "react-native";
 import * as RN from "react-native";
-const TextInput = RN.TextInput;
+const NativeInput = RN.TextInput;
 import { useRouter } from "expo-router";
 import { useCategoryStore, Category } from "@/stores/categories";
 import { useToastStore } from "@/stores/toast";
@@ -175,7 +175,7 @@ export default function AddCategoryModal() {
           {/* Name Input */}
           <View className="mb-5">
             <Text className="text-zinc-400 text-xs font-semibold mb-2">Category Name</Text>
-            <TextInput
+            <NativeInput
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.06)",
                 borderWidth: 1,
@@ -200,7 +200,7 @@ export default function AddCategoryModal() {
               <Text className="text-zinc-400 text-xs font-semibold">Select Icon</Text>
               <View className="flex-row items-center gap-1.5">
                 <Text className="text-zinc-400 text-[10px] font-semibold">Custom:</Text>
-                <TextInput
+                <NativeInput
                   style={{
                     backgroundColor: "rgba(255, 255, 255, 0.06)",
                     borderWidth: 1,
@@ -247,8 +247,20 @@ export default function AddCategoryModal() {
               <Text className="text-zinc-400 text-xs font-semibold">Select Color</Text>
               <View className="flex-row items-center gap-2">
                 <Text className="text-zinc-400 text-[10px] font-semibold">HEX:</Text>
-                <TextInput
-                  className="bg-white/[0.06] border border-white/[0.08] rounded-lg px-2 py-1 text-white text-xs w-20 text-center font-mono"
+                <NativeInput
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.06)",
+                    borderWidth: 1,
+                    borderColor: "rgba(255, 255, 255, 0.08)",
+                    borderRadius: 8,
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    color: "#ffffff",
+                    fontSize: 12,
+                    width: 80,
+                    textAlign: "center",
+                    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
+                  }}
                   placeholder="#10B981"
                   placeholderTextColor="#71717a"
                   value={color}
