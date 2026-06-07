@@ -159,7 +159,7 @@ export default function EditTransactionModal() {
       <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }} className="flex-1 bg-black" edges={["top", "left", "right"]}>
         {/* Neon blobs */}
         <View
-          className={`absolute top-[-40] right-[-20] w-[160] h-[160] rounded-full opacity-10 ${
+          className={`absolute top-[-40] right-[-20] w-[160px] h-[160px] rounded-full opacity-10 ${
             txType === "income" ? "bg-emerald-500" : "bg-red-500"
           }`}
         />

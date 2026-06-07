@@ -97,7 +97,7 @@ export default function BudgetsScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }} className="flex-1 bg-black" edges={["top", "left", "right"]}>
       {/* Neon blobs */}
-      <View className="absolute bottom-[-50] right-[-40] w-[200] h-[200] bg-emerald-500 rounded-full opacity-8" />
+      <View className="absolute bottom-[-50] right-[-40] w-[200px] h-[200px] bg-emerald-500 rounded-full opacity-8" />
 
       <ScrollView
         className="flex-1 px-5 pt-6"

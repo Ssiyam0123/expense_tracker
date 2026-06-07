@@ -122,7 +122,7 @@ export default function AddCategoryModal() {
     >
       <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }} className="flex-1 bg-black" edges={["top", "left", "right"]}>
         {/* Neon blobs */}
-        <View className="absolute top-[-50] left-[-50] w-[180] h-[180] bg-emerald-500 rounded-full opacity-10 blur-[80]" />
+        <View className="absolute top-[-50] left-[-50] w-[180px] h-[180px] bg-emerald-500 rounded-full opacity-10" />
         
         <ScrollView
           className="flex-1 px-5 pt-6"

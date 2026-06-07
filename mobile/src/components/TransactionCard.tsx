@@ -48,7 +48,7 @@ export function TransactionCard({
     >
       {/* Type left border accent */}
       <View
-        className={`absolute left-0 top-0 bottom-0 w-[4.5] ${
+        className={`absolute left-0 top-0 bottom-0 w-[4px] ${
           isIncome ? "bg-emerald-500" : "bg-red-500"
         }`}
       />
